@@ -8,6 +8,9 @@ import org.mauikit.documents as Poppler
 
 import org.maui.shelf as Shelf
 
+// ── Internal model for the active collection filter ──────────────────────────
+// sources are set by the filter TabBar below; defaults to "collection:///".
+
 Maui.PageLayout
 {
     id: root
@@ -28,6 +31,84 @@ Maui.PageLayout
         id: _menu
         index: _browser.currentIndex
         model: _libraryModel
+    }
+
+    // ── Continue Reading section ──────────────────────────────────────────
+    // Shown as a floating strip at the top of the scroll area when there are
+    // recently opened files tracked by ReadingProgress.
+    Component
+    {
+        id: _continueReadingComponent
+
+        Item
+        {
+            id: _continueReading
+            implicitHeight: _recentLabel.implicitHeight
+                            + Maui.Style.space.small
+                            + _recentList.implicitHeight
+                            + Maui.Style.space.medium
+
+            Label
+            {
+                id: _recentLabel
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.leftMargin: Maui.Style.space.medium
+                anchors.topMargin: Maui.Style.space.small
+                text: i18n("Continue Reading")
+                font.bold: true
+                opacity: 0.7
+            }
+
+            ListView
+            {
+                id: _recentList
+                anchors.top: _recentLabel.bottom
+                anchors.topMargin: Maui.Style.space.small
+                anchors.left: parent.left
+                anchors.right: parent.right
+                implicitHeight: 160
+                clip: true
+                orientation: ListView.Horizontal
+                spacing: Maui.Style.space.medium
+                leftMargin: Maui.Style.space.medium
+                rightMargin: Maui.Style.space.medium
+
+                model: Shelf.ReadingProgress.recentFiles
+
+                delegate: Maui.GridBrowserDelegate
+                {
+                    height: _recentList.height
+                    width: 148
+
+                    imageSource: viewerSettings.showThumbnails ? (modelData.preview || "") : ""
+                    iconSource: modelData.icon || "application-pdf"
+                    iconSizeHint: Maui.Style.iconSizes.big
+                    imageHeight: 80
+                    imageWidth: 148
+
+                    label1.text: modelData.label || ""
+                    label2.text: modelData.page > 0
+                                 ? (modelData.totalPages > 0
+                                    ? i18n("p. %1 / %2", modelData.page + 1, modelData.totalPages)
+                                    : i18n("p. %1", modelData.page + 1))
+                                 : ""
+                    template.fillMode: Image.PreserveAspectFit
+                    template.labelSizeHint: 28
+
+                    onClicked: root.openFileRequested(modelData.url || modelData.path)
+                }
+            }
+
+            Connections
+            {
+                target: Shelf.ReadingProgress
+                function onRecentFilesChanged()
+                {
+                    _recentList.model = Shelf.ReadingProgress.recentFiles
+                }
+            }
+        }
     }
 
     leftContent: [
@@ -128,13 +209,91 @@ Maui.PageLayout
         }
     ]
 
-    Maui.AltBrowser
+    // Root layout that stacks the filter bar, continue-reading strip, and browser
+    ColumnLayout
     {
-        id: _browser
         anchors.fill: parent
-        background: null
-        headBar.visible: false
-        viewType: viewerSettings.viewType
+        spacing: 0
+
+        // ── Filter tabs: All | PDFs | Comics | Text ───────────────────────
+        TabBar
+        {
+            id: _filterBar
+            Layout.fillWidth: true
+            Layout.leftMargin: Maui.Style.space.medium
+            Layout.rightMargin: Maui.Style.space.medium
+            Layout.topMargin: Maui.Style.space.small
+            Layout.bottomMargin: Maui.Style.space.small
+            background: null
+            contentHeight: Maui.Style.rowHeight
+
+            TabButton
+            {
+                text: i18n("All")
+                width: implicitWidth
+                onClicked: _libraryList.sources = ["collection:///"]
+            }
+
+            TabButton
+            {
+                text: i18n("PDFs")
+                width: implicitWidth
+                onClicked: _libraryList.sources = ["documents:///"]
+            }
+
+            TabButton
+            {
+                text: i18n("Comics")
+                width: implicitWidth
+                onClicked: _libraryList.sources = ["comics:///"]
+            }
+
+            TabButton
+            {
+                text: i18n("Text")
+                width: implicitWidth
+                onClicked: _libraryList.sources = _textSources()
+            }
+        }
+
+        // ── Continue Reading strip (only when recent files exist) ─────────
+        Loader
+        {
+            id: _continueLoader
+            Layout.fillWidth: true
+            active: Shelf.ReadingProgress.recentFiles.length > 0
+            visible: active
+            asynchronous: true
+            sourceComponent: _continueReadingComponent
+
+            Connections
+            {
+                target: Shelf.ReadingProgress
+                function onRecentFilesChanged()
+                {
+                    _continueLoader.active = Shelf.ReadingProgress.recentFiles.length > 0
+                }
+            }
+        }
+
+        // Thin separator below the strip when it is visible
+        Rectangle
+        {
+            visible: _continueLoader.active && _continueLoader.status === Loader.Ready
+            Layout.fillWidth: true
+            height: 1
+            color: Maui.Theme.separatorColor
+        }
+
+        // ── Main browser ──────────────────────────────────────────────────
+        Maui.AltBrowser
+        {
+            id: _browser
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            background: null
+            headBar.visible: false
+            viewType: viewerSettings.viewType
         enableLassoSelection: true
         gridView.itemSize: Math.min(180, Math.floor(gridView.availableWidth / 3))
         gridView.itemHeight: 220
@@ -338,6 +497,8 @@ Maui.PageLayout
         }
     }
 
+    } // end ColumnLayout
+
     footer: Maui.SelectionBar
     {
         id: _selectionbar
@@ -396,5 +557,14 @@ Maui.PageLayout
     function removeFiles(urls)
     {
         _libraryList.removeFiles(urls)
+    }
+
+    // Returns the library sources list filtered to plain-text files.
+    // LibraryList does not have a dedicated "text:///" virtual path, so we
+    // pass the real source paths and let the model apply a text-only filter
+    // by temporarily overriding the sources with a custom tag handled below.
+    function _textSources()
+    {
+        return ["text:///"]
     }
 }

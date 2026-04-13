@@ -8,7 +8,8 @@ remove_definitions(-DQT_NO_CAST_FROM_ASCII -DQT_STRICT_ITERATORS -DQT_NO_CAST_FR
 set(shelf_SRCS
     main.cpp
     library.cpp
-    models/library/librarymodel.cpp)
+    models/library/librarymodel.cpp
+    models/readingprogress.cpp)
 
 set(shelf_ASSETS
     lib_assets.qrc)
@@ -26,6 +27,7 @@ qt_add_qml_module(${PROJECT_NAME} URI app.maui.shelf
     views/library/FloatingViewer.qml
     views/library/LibraryMenu.qml
     views/Viewer/Viewer.qml
+    views/Viewer/Viewer_PDF.qml
     views/Viewer/Viewer_TXT.qml
     views/Viewer/Viewer_EPUB.qml
     views/SettingsDialog.qml

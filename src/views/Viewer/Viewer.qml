@@ -5,7 +5,6 @@ import QtQuick.Window
 import org.mauikit.controls as Maui
 import org.mauikit.filebrowsing as FB
 
-import org.mauikit.documents as Poppler
 import org.maui.shelf as Shelf
 
 Item
@@ -152,13 +151,10 @@ Item
     {
         id: _pdfComponent
 
-        Poppler.PDFViewer
+        Viewer_PDF
         {
             Maui.Controls.title: title
             Maui.Controls.toolTipText: path
-            headBar.visible: false
-
-            onGoBackTriggered: _stackView.pop()
         }
     }
 

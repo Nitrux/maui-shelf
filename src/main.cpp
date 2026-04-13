@@ -17,6 +17,7 @@
 
 #include "library.h"
 #include "models/library/librarymodel.h"
+#include "models/readingprogress.h"
 
 #include "../shelf_version.h"
 
@@ -101,6 +102,7 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<LibraryModel>(SHELF_URI, 1, 0, "LibraryList");
     qmlRegisterSingletonInstance<Library>(SHELF_URI, 1, 0, "Library", Library::instance());
+    qmlRegisterSingletonInstance<ReadingProgress>(SHELF_URI, 1, 0, "ReadingProgress", ReadingProgress::instance());
 
     engine.load(url);
 

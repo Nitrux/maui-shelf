@@ -80,6 +80,10 @@ void LibraryModel::setList(const QStringList &sources)
             {
                 filters << "*."+type;
             }
+        }else if(source == "text:///")
+        {
+            paths = Library::instance()->sources();
+            filters = FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::TEXT];
         }else if(source == "collection:///")
         {
             paths = Library::instance()->sources();
