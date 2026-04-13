@@ -19,7 +19,18 @@ Item
     property alias orientation: _pdfViewer.orientation
     property alias currentItem: _pdfViewer.currentItem
     readonly property int currentPage: _pdfViewer.currentPage
-    readonly property string title: _pdfViewer.title
+
+    // Use the filename (without extension) as the tab title.
+    // PDF internal metadata titles are often wrong (e.g. "Microsoft Word – Document1").
+    readonly property string title:
+    {
+        if (control.path.length === 0)
+            return ""
+        var lastSlash = control.path.lastIndexOf("/")
+        var fname = lastSlash >= 0 ? control.path.substring(lastSlash + 1) : control.path
+        var lastDot = fname.lastIndexOf(".")
+        return lastDot > 0 ? fname.substring(0, lastDot) : fname
+    }
 
     // ── Secondary Document used ONLY for tocModel / page count ────────────
     Poppler.Document
@@ -113,8 +124,8 @@ Item
             color: Maui.Theme.separatorColor
         }
 
-        // PDF viewer ───────────────────────────────────────────────────────
-        Poppler.PDFViewer
+        // PDF viewer (vendored) ───────────────────────────────────────────
+        PDFViewer
         {
             id: _pdfViewer
             Layout.fillWidth: true
@@ -123,7 +134,8 @@ Item
             path: control.path
             headBar.visible: false
 
-            // Inject a TOC toggle into the footer's left side
+            // Inject the TOC toggle into the footer's left side.
+            // The vendored PDFViewer leaves footBar.leftContent empty for callers.
             footBar.leftContent: ToolButton
             {
                 id: _tocToggle

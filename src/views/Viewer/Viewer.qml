@@ -15,6 +15,10 @@ Item
     readonly property alias currentViewer: _tabView.currentItem
     readonly property alias tabView : _tabView
     readonly property string title : _tabView.currentItem ? _tabView.currentItem.title : ""
+
+    // Maps file path → tab index so we can switch to an already-open document
+    // rather than opening it again. Updated in open() and onCloseTabClicked.
+    property var _openPaths: ({})
     //    onGoBackTriggered: _stackView.pop()
 
     Component
@@ -49,7 +53,20 @@ Item
         anchors.fill: parent
 
         Maui.Controls.showCSD: control.Maui.Controls.showCSD
-        onCloseTabClicked: _tabView.closeTab(index)
+        onCloseTabClicked:
+        {
+            // Remove the closing entry and shift down every index above it
+            var closing = index
+            var updated = {}
+            for (var p in _openPaths)
+            {
+                var i = _openPaths[p]
+                if (i === closing) continue
+                updated[p] = i > closing ? i - 1 : i
+            }
+            _openPaths = updated
+            _tabView.closeTab(closing)
+        }
         tabBar.visible: true
         tabBar.showNewTabButton: false
         tabBarMargins: Maui.Style.defaultPadding
@@ -60,19 +77,14 @@ Item
         tabBar.leftContent: ToolButton
         {
             icon.name: "go-previous"
-            text: i18n("Browser")
-            display: isWide ? ToolButton.TextBesideIcon : ToolButton.IconOnly
+            display: ToolButton.IconOnly
+            Maui.Controls.toolTipText: i18n("Back to browser")
             onClicked: toggleViewer()
         }
 
         onCurrentIndexChanged: console.log("VIEWER CURRENT INDEX CHANGED", currentIndex)
 
         tabBar.rightContent: [
-
-            FB.FavButton
-            {
-                url: control.currentPath
-            },
 
             Loader
             {
@@ -187,31 +199,33 @@ Item
 
     function open(path)
     {
-        console.log("CHECKING IF DOC FILE EXISTS", path)
-        if(FB.FM.fileExists(path))
+        if (!FB.FM.fileExists(path))
+            return
+
+        // If the document is already open, switch to its tab instead
+        if (_openPaths.hasOwnProperty(path))
         {
-            if(!viewerView.active)
-            {
+            _tabView.currentIndex = _openPaths[path]
+            if (!viewerView.active)
                 toggleViewer()
-            }
-
-            if(Shelf.Library.isPDF(path))
-            {
-                _tabView.addTab(_pdfComponent, ({'path': path}))
-            }
-            else if(Shelf.Library.isPlainText(path))
-            {
-                _tabView.addTab(_txtComponent, ({'path': path}))
-            }
-            else if(Shelf.Library.isEpub(path))
-            {
-                _tabView.addTab(_epubComponent, ({'path': path}))
-            }else if(Shelf.Library.isCommicBook(path))
-            {
-                _tabView.addTab(_CBComponent, ({'path': path}))
-            }
-
-            else return;
+            return
         }
+
+        if (!viewerView.active)
+            toggleViewer()
+
+        if (Shelf.Library.isPDF(path))
+            _tabView.addTab(_pdfComponent, {'path': path})
+        else if (Shelf.Library.isPlainText(path))
+            _tabView.addTab(_txtComponent, {'path': path})
+        else if (Shelf.Library.isEpub(path))
+            _tabView.addTab(_epubComponent, {'path': path})
+        else if (Shelf.Library.isCommicBook(path))
+            _tabView.addTab(_CBComponent, {'path': path})
+        else
+            return
+
+        // Record the new tab's index (addTab makes it current)
+        _openPaths[path] = _tabView.currentIndex
     }
 }

@@ -175,20 +175,55 @@ Maui.PageLayout
                 checked: _libraryModel.sortOrder === Qt.DescendingOrder
                 onTriggered: _libraryModel.sortOrder = Qt.DescendingOrder
             }
+        },
+
+        ToolSeparator
+        {
+            bottomPadding: 10
+            topPadding: 10
+        },
+
+        Maui.SearchField
+        {
+            placeholderText: i18n("Filter...")
+            implicitWidth: 200
+            onAccepted: _browser.model.filter = text
+            onCleared: _libraryModel.clearFilters()
         }
     ]
 
-    middleContent: Maui.SearchField
-    {
-        Layout.fillWidth: true
-        Layout.maximumWidth: 500
-        Layout.alignment: Qt.AlignCenter
-        placeholderText: i18n("Filter...")
-        onAccepted: _browser.model.filter = text
-        onCleared: _libraryModel.clearFilters()
-    }
-
     rightContent: [
+
+        Label
+        {
+            text: i18n("Show")
+            font.weight: Font.DemiBold
+            verticalAlignment: Text.AlignVCenter
+        },
+
+        ComboBox
+        {
+            id: _typeFilter
+            implicitWidth: 120
+
+            model: [i18n("All"), i18n("PDFs"), i18n("Comics"), i18n("Text")]
+
+            readonly property var _sources: [
+                ["collection:///"],
+                ["documents:///"],
+                ["comics:///"],
+                ["text:///"]
+            ]
+
+            onActivated: (idx) => _libraryList.sources = _sources[idx]
+        },
+
+        ToolSeparator
+        {
+            bottomPadding: 10
+            topPadding: 10
+        },
+
         Maui.ToolButtonMenu
         {
             icon.name: "overflow-menu"
@@ -209,52 +244,11 @@ Maui.PageLayout
         }
     ]
 
-    // Root layout that stacks the filter bar, continue-reading strip, and browser
+    // Root layout that stacks the continue-reading strip and the browser
     ColumnLayout
     {
         anchors.fill: parent
         spacing: 0
-
-        // ── Filter tabs: All | PDFs | Comics | Text ───────────────────────
-        TabBar
-        {
-            id: _filterBar
-            Layout.fillWidth: true
-            Layout.leftMargin: Maui.Style.space.medium
-            Layout.rightMargin: Maui.Style.space.medium
-            Layout.topMargin: Maui.Style.space.small
-            Layout.bottomMargin: Maui.Style.space.small
-            background: null
-            contentHeight: Maui.Style.rowHeight
-
-            TabButton
-            {
-                text: i18n("All")
-                width: implicitWidth
-                onClicked: _libraryList.sources = ["collection:///"]
-            }
-
-            TabButton
-            {
-                text: i18n("PDFs")
-                width: implicitWidth
-                onClicked: _libraryList.sources = ["documents:///"]
-            }
-
-            TabButton
-            {
-                text: i18n("Comics")
-                width: implicitWidth
-                onClicked: _libraryList.sources = ["comics:///"]
-            }
-
-            TabButton
-            {
-                text: i18n("Text")
-                width: implicitWidth
-                onClicked: _libraryList.sources = _textSources()
-            }
-        }
 
         // ── Continue Reading strip (only when recent files exist) ─────────
         Loader
@@ -559,12 +553,4 @@ Maui.PageLayout
         _libraryList.removeFiles(urls)
     }
 
-    // Returns the library sources list filtered to plain-text files.
-    // LibraryList does not have a dedicated "text:///" virtual path, so we
-    // pass the real source paths and let the model apply a text-only filter
-    // by temporarily overriding the sources with a custom tag handled below.
-    function _textSources()
-    {
-        return ["text:///"]
-    }
 }

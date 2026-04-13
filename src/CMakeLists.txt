@@ -27,6 +27,7 @@ qt_add_qml_module(${PROJECT_NAME} URI app.maui.shelf
     views/library/FloatingViewer.qml
     views/library/LibraryMenu.qml
     views/Viewer/Viewer.qml
+    views/Viewer/PDFViewer.qml
     views/Viewer/Viewer_PDF.qml
     views/Viewer/Viewer_TXT.qml
     views/Viewer/Viewer_EPUB.qml
