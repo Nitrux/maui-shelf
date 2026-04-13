@@ -35,8 +35,20 @@ public Q_SLOTS:
 
     /**
      * @brief Records that @p url was opened, bumping it to the top of recentFiles.
+     *        URL is normalised to file:// form before storage so that local paths
+     *        and file:// URLs never produce duplicate entries.
      */
     void markOpened(const QString &url);
+
+    /**
+     * @brief Removes @p url from the recent-files list.
+     */
+    void removeFromRecent(const QString &url);
+
+    /**
+     * @brief Clears the entire recent-files list.
+     */
+    void clearRecent();
 
 Q_SIGNALS:
     void recentFilesChanged();

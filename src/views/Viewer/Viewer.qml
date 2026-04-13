@@ -55,16 +55,20 @@ Item
         Maui.Controls.showCSD: control.Maui.Controls.showCSD
         onCloseTabClicked:
         {
-            // Remove the closing entry and shift down every index above it
+            // Remove the closing entry, shift down every index above it,
+            // and remove the document from the Continue Reading list.
             var closing = index
             var updated = {}
+            var closingPath = ""
             for (var p in _openPaths)
             {
                 var i = _openPaths[p]
-                if (i === closing) continue
+                if (i === closing) { closingPath = p; continue }
                 updated[p] = i > closing ? i - 1 : i
             }
             _openPaths = updated
+            if (closingPath)
+                Shelf.ReadingProgress.removeFromRecent(closingPath)
             _tabView.closeTab(closing)
         }
         tabBar.visible: true
@@ -199,6 +203,11 @@ Item
 
     function open(path)
     {
+        // Normalise to file:// URL so the _openPaths key always matches
+        // regardless of whether the caller passed a local path or a URL.
+        if (path.indexOf("://") < 0)
+            path = "file://" + path
+
         if (!FB.FM.fileExists(path))
             return
 

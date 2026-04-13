@@ -28,13 +28,19 @@ QString ReadingProgress::encodeKey(const QString &url)
         QCryptographicHash::hash(url.toUtf8(), QCryptographicHash::Md5).toHex());
 }
 
+// Normalise any local path or file:// URL to a canonical file:// URL string.
+static QString normalizeUrl(const QString &url)
+{
+    return QUrl::fromUserInput(url).toString();
+}
+
 void ReadingProgress::saveProgress(const QString &url, int page, int totalPages)
 {
-    const auto key = encodeKey(url);
+    const auto key = encodeKey(normalizeUrl(url));
     QSettings settings;
     settings.beginGroup(QStringLiteral("ReadingProgress"));
     settings.beginGroup(key);
-    settings.setValue(QStringLiteral("url"), url);
+    settings.setValue(QStringLiteral("url"), normalizeUrl(url));
     settings.setValue(QStringLiteral("page"), page);
     settings.setValue(QStringLiteral("totalPages"), totalPages);
     settings.endGroup();
@@ -43,7 +49,7 @@ void ReadingProgress::saveProgress(const QString &url, int page, int totalPages)
 
 int ReadingProgress::getProgress(const QString &url) const
 {
-    const auto key = encodeKey(url);
+    const auto key = encodeKey(normalizeUrl(url));
     QSettings settings;
     settings.beginGroup(QStringLiteral("ReadingProgress"));
     settings.beginGroup(key);
@@ -55,10 +61,29 @@ int ReadingProgress::getProgress(const QString &url) const
 
 void ReadingProgress::markOpened(const QString &url)
 {
-    m_recentFiles.removeAll(url);
-    m_recentFiles.prepend(url);
+    const QString normalized = normalizeUrl(url);
+    m_recentFiles.removeAll(normalized);
+    m_recentFiles.prepend(normalized);
     while (m_recentFiles.size() > 10)
         m_recentFiles.removeLast();
+    persist();
+    Q_EMIT recentFilesChanged();
+}
+
+void ReadingProgress::removeFromRecent(const QString &url)
+{
+    const QString normalized = normalizeUrl(url);
+    if (m_recentFiles.removeAll(normalized) > 0) {
+        persist();
+        Q_EMIT recentFilesChanged();
+    }
+}
+
+void ReadingProgress::clearRecent()
+{
+    if (m_recentFiles.isEmpty())
+        return;
+    m_recentFiles.clear();
     persist();
     Q_EMIT recentFilesChanged();
 }

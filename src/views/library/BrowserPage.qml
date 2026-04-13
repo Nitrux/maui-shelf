@@ -44,9 +44,9 @@ Maui.PageLayout
         {
             id: _continueReading
             implicitHeight: _recentLabel.implicitHeight
-                            + Maui.Style.space.small
-                            + _recentList.implicitHeight
                             + Maui.Style.space.medium
+                            + _recentList.implicitHeight
+                            + Maui.Style.space.big
 
             Label
             {
@@ -60,11 +60,23 @@ Maui.PageLayout
                 opacity: 0.7
             }
 
+            ToolButton
+            {
+                icon.name: "edit-clear-all"
+                text: i18n("Clear")
+                display: ToolButton.TextBesideIcon
+                anchors.right: parent.right
+                anchors.rightMargin: Maui.Style.space.medium
+                anchors.verticalCenter: _recentLabel.verticalCenter
+                Maui.Controls.toolTipText: i18n("Clear list")
+                onClicked: Shelf.ReadingProgress.clearRecent()
+            }
+
             ListView
             {
                 id: _recentList
                 anchors.top: _recentLabel.bottom
-                anchors.topMargin: Maui.Style.space.small
+                anchors.topMargin: Maui.Style.space.medium
                 anchors.left: parent.left
                 anchors.right: parent.right
                 implicitHeight: 160
@@ -185,10 +197,10 @@ Maui.PageLayout
 
         Maui.SearchField
         {
-            placeholderText: i18n("Filter...")
+            placeholderText: i18n("Search...")
             implicitWidth: 200
-            onAccepted: _browser.model.filter = text
-            onCleared: _libraryModel.clearFilters()
+            onAccepted: _libraryModel.filter = text
+            onCleared: _libraryModel.filter = ""
         }
     ]
 
@@ -245,16 +257,40 @@ Maui.PageLayout
     ]
 
     // Root layout that stacks the continue-reading strip and the browser
-    ColumnLayout
+    SplitView
     {
         anchors.fill: parent
-        spacing: 0
+        orientation: Qt.Vertical
+
+        handle: Rectangle
+        {
+            implicitHeight: 10
+            Maui.Theme.colorSet: Maui.Theme.Window
+            Maui.Theme.inherit: false
+            color: SplitHandle.pressed  ? Maui.Theme.highlightColor
+                 : SplitHandle.hovered  ? Maui.Theme.hoverColor
+                 :                        Maui.Theme.separatorColor
+
+            Rectangle
+            {
+                anchors.centerIn: parent
+                width: 28
+                height: 2
+                radius: 1
+                color: SplitHandle.pressed ? Maui.Theme.highlightedTextColor
+                     : Maui.Theme.textColor
+                opacity: SplitHandle.hovered ? 0.6 : 0.25
+            }
+        }
 
         // ── Continue Reading strip (only when recent files exist) ─────────
         Loader
         {
             id: _continueLoader
-            Layout.fillWidth: true
+            SplitView.fillWidth: true
+            SplitView.preferredHeight: 220
+            SplitView.minimumHeight: active ? 120 : 0
+            SplitView.maximumHeight: active ? 400 : 0
             active: Shelf.ReadingProgress.recentFiles.length > 0
             visible: active
             asynchronous: true
@@ -270,21 +306,12 @@ Maui.PageLayout
             }
         }
 
-        // Thin separator below the strip when it is visible
-        Rectangle
-        {
-            visible: _continueLoader.active && _continueLoader.status === Loader.Ready
-            Layout.fillWidth: true
-            height: 1
-            color: Maui.Theme.separatorColor
-        }
-
         // ── Main browser ──────────────────────────────────────────────────
         Maui.AltBrowser
         {
             id: _browser
-            Layout.fillWidth: true
-            Layout.fillHeight: true
+            SplitView.fillWidth: true
+            SplitView.fillHeight: true
             background: null
             headBar.visible: false
             viewType: viewerSettings.viewType
@@ -322,6 +349,7 @@ Maui.PageLayout
             id: _libraryModel
             sort: "modified"
             sortOrder: Qt.DescendingOrder
+            filterRole: "label"
             recursiveFilteringEnabled: true
             sortCaseSensitivity: Qt.CaseInsensitive
             filterCaseSensitivity: Qt.CaseInsensitive
@@ -491,7 +519,7 @@ Maui.PageLayout
         }
     }
 
-    } // end ColumnLayout
+    } // end SplitView
 
     footer: Maui.SelectionBar
     {
