@@ -161,6 +161,21 @@ void LibraryModel::rescan()
     this->setList(m_sources);
 }
 
+void LibraryModel::removeFiles(const QStringList &urls)
+{
+    for (const auto &url : urls)
+    {
+        for (int i = this->list.size() - 1; i >= 0; --i)
+        {
+            const auto itemUrl = this->list.at(i).value(FMH::MODEL_KEY::URL);
+            if (itemUrl == url)
+            {
+                deleteAt(i);
+            }
+        }
+    }
+}
+
 void LibraryModel::setSources(QStringList sources)
 {
     if (m_sources == sources)

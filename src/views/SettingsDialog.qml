@@ -22,6 +22,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import org.maui.shelf
 import org.mauikit.controls as Maui
+import org.mauikit.filebrowsing as FB
 
 Maui.SettingsDialog
 {
@@ -94,6 +95,16 @@ Maui.SettingsDialog
         }
     }
 
+    function cleanSourcePath(path)
+    {
+        var value = String(path || "")
+
+        if(value.startsWith("file://"))
+            value = value.replace("file://", "")
+
+        return value.replace(FB.FM.homePath(), "~")
+    }
+
     Maui.SectionGroup
     {
         title: i18n("Sources")
@@ -117,7 +128,7 @@ Maui.SettingsDialog
                     template.iconSource: modelData.icon
                     template.iconSizeHint: Maui.Style.iconSizes.small
                     template.label1.text: modelData.label
-                    template.label2.text: modelData.path
+                    template.label2.text: control.cleanSourcePath(modelData.path)
 
                     template.content: ToolButton
                     {
@@ -147,14 +158,6 @@ Maui.SettingsDialog
                     var dialog = _fileDialog.createObject(root, props)
                     dialog.open()
                 }
-            }
-
-            Button
-            {
-                Layout.fillWidth: true
-                text: i18n("Scan now")
-                onClicked: Library.rescan()
-
             }
         }
     }

@@ -1,13 +1,13 @@
 #include "library.h"
+
 #include <QSettings>
-#include <QFileInfo>
-#include <QDesktopServices>
+
 #include <MauiKit4/FileBrowsing/fmstatic.h>
 
 Library *Library::m_instance = nullptr;
 
 Library::Library(QObject *parent) : QObject(parent)
-{   
+{
     static const auto defaultSources = QStringList({FMStatic::DesktopPath, FMStatic::DownloadsPath, FMStatic::DocumentsPath});
 
     QSettings settings;
@@ -94,7 +94,7 @@ void Library::addSources(const QStringList &urls)
 
 bool Library::isPDF(const QString &url)
 {
-  return FMStatic::getMime(url) == "application/pdf";
+    return FMStatic::getMime(url) == "application/pdf";
 }
 
 bool Library::isPlainText(const QString &url)
@@ -104,7 +104,6 @@ bool Library::isPlainText(const QString &url)
 
 bool Library::isEpub(const QString &url)
 {
-
     return url.endsWith(".epub", Qt::CaseSensitivity::CaseInsensitive);
 }
 
@@ -113,13 +112,3 @@ bool Library::isCommicBook(const QString &url)
     auto mime = FMStatic::getMime(url);
     return mime == "application/vnd.comicbook+zip" || mime == "application/vnd.comicbook+rar";
 }
-
-void Library::share(const QString &url)
-{
-    QDesktopServices::openUrl(QUrl("file:///storage/emulated/0/Download/El Amante - Marguerite Duras.pdf"));
-}
-
-
-
-
-

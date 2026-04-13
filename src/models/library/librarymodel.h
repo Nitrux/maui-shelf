@@ -37,6 +37,7 @@ public Q_SLOTS:
     bool bookmark(const int &index, const int &value);
     void clear();
     void rescan();
+    void removeFiles(const QStringList &urls);
     void setSources(QStringList sources);
 
 Q_SIGNALS:

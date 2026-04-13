@@ -4,6 +4,7 @@ import QtQuick.Controls
 
 import org.mauikit.controls as Maui
 import org.mauikit.filebrowsing as FB
+import org.mauikit.documents as Poppler
 
 import org.maui.shelf as Shelf
 
@@ -14,14 +15,14 @@ import "views/Viewer/"
 Maui.ApplicationWindow
 {
     id: root
-    title: viewerView.title
-    Maui.Style.styleType: viewerView.active ? Maui.Style.Dark : undefined
+    title: viewerView.title.length > 0 ? viewerView.title + " - " + i18n("Shelf") : i18n("Shelf")
 
-    property bool selectionMode: false
+    color: "transparent"
+    background: null
 
     Settings
     {
-        id: viewerSettings
+        id: appSettings
         property bool autoScan : true
         property bool showThumbnails: true
         property int viewType : Maui.AltBrowser.ViewType.Grid
@@ -47,28 +48,31 @@ Maui.ApplicationWindow
         }
     }
 
-    FB.OpenWithDialog
+    Maui.WindowBlur
     {
-        id: _openWithDialog
+        view: root
+        geometry: Qt.rect(0, 0, root.width, root.height)
+        windowRadius: Maui.Style.radiusV
+        enabled: true
     }
 
-    property FB.TagsDialog tagsDialog: null
-    Component
+    Rectangle
     {
-        id: tagsDialogComponent
-        FB.TagsDialog
-        {
-            onTagsReady: (tags) => composerList.updateToUrls(tags)
-            composerList.strict: false
-        }
+        anchors.fill: parent
+        color: Maui.Theme.backgroundColor
+        opacity: 0.76
+        radius: Maui.Style.radiusV
+        border.color: Qt.rgba(1, 1, 1, 0)
+        border.width: 1
     }
 
     StackView
     {
         id: _stackView
         anchors.fill: parent
+        background: null
 
-        initialItem: initModule === "viewer" ? viewerView : libraryView
+        initialItem: initModule === "viewer" ? viewerView : browserPageComponent
 
         Viewer
         {
@@ -80,12 +84,15 @@ Maui.ApplicationWindow
 
         Component
         {
-            id: libraryView
+            id: browserPageComponent
 
-            LibraryView
+            BrowserPage
             {
+                viewerSettings: appSettings
+                windowRoot: root
                 Maui.Controls.showCSD: true
                 clip: true
+                onOpenFileRequested: (path) => viewerView.open(path)
             }
         }
     }
@@ -93,77 +100,39 @@ Maui.ApplicationWindow
     Connections
     {
         target: Shelf.Library
-
         ignoreUnknownSignals: true
 
         function onRequestedFiles(files)
         {
-            for(var file of files)
-            {
-                console.log("OPEN FILES<<<<<<<<<<<<<<", file)
+            for (var file of files)
                 viewerView.open(file)
-            }
         }
     }
 
-    Component.onCompleted:
+    function openSettingsDialog()
     {
-        setAndroidStatusBarColor()
+        var dialog = _settingsDialogComponent.createObject(root)
+        dialog.open()
     }
 
     function toggleViewer()
     {
-        if(viewerView.active)
+        if (viewerView.active)
         {
-            if(_stackView.depth === 1)
+            if (_stackView.depth === 1)
             {
-                _stackView.replace(viewerView, libraryView)
-
-            }else
+                _stackView.replace(viewerView, browserPageComponent)
+            }
+            else
             {
                 _stackView.pop()
             }
-
-        }else
+        }
+        else
         {
             _stackView.push(viewerView)
         }
 
         _stackView.currentItem.forceActiveFocus()
-    }
-
-    function setAndroidStatusBarColor()
-    {
-        if(Maui.Handy.isAndroid)
-        {
-            Maui.Android.statusbarColor( Maui.Theme.backgroundColor, !viewerSettings.darkMode)
-            Maui.Android.navBarColor(Maui.Theme.backgroundColor,  !viewerSettings.darkMode)
-        }
-    }
-
-    function tagUrls(urls)
-    {
-        if(!root.tagsDialog)
-        {
-            root.tagsDialog = tagsDialogComponent.createObject(root)
-        }
-
-        root.tagsDialog.composerList.urls = urls
-        root.tagsDialog.open()
-    }
-
-    function saveFilesAs(urls)
-    {
-        var props = ({'mode' : FB.FileDialog.Save,
-                         'browser.settings.filterType' : FB.FMList.DOCUMENT,
-                         'browser.settings.filters' : [".cbz", ".cbr"],
-                         'singleSelection' : true,
-                         'suggestedFileName' : FB.FM.getFileInfo(urls[0]).label,
-                         'callback' : function(paths)
-                         {
-                             FB.FM.copy(urls, paths[0])
-                         }})
-        var dialog = _fileDialog.createObject(root, props)
-        dialog.open()
     }
 }

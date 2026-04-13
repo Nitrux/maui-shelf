@@ -19,27 +19,15 @@ set(REQUIRED_QT_VERSION 6.5.2)
 set(REQUIRED_KF_VERSION 5.240.0)
 
 find_package(ECM ${REQUIRED_KF_VERSION} REQUIRED NO_MODULE)
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${ECM_MODULE_PATH})
-
-if(ANDROID)
-    set(ANDROID_ABIS "armeabi-v8a")
-
-    find_package(Qt6 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS QuickControls2)
-elseif(UNIX)
-    find_package(Qt6 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS Widgets)
-endif()
-
-find_package(Qt6 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS Sql Multimedia Qml Quick)
-find_package(KF6 ${REQUIRED_KF_VERSION} REQUIRED COMPONENTS I18n CoreAddons)
+set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
+find_package(Qt6 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS Core Gui Sql Multimedia Qml Quick)
+find_package(KF6CoreAddons ${REQUIRED_KF_VERSION} REQUIRED)
+find_package(KF6I18n ${REQUIRED_KF_VERSION} REQUIRED)
 
 find_package(MauiKit4 REQUIRED COMPONENTS FileBrowsing Documents)
 
-if(UNIX AND NOT APPLE AND NOT ANDROID)
-    include(KDEInstallDirs)
-    include(KDECMakeSettings)
-endif()
-
-#include(KDECompilerSettings NO_POLICY_SCOPE) //this makes android app launch crash by not finding the main method
+include(KDEInstallDirs)
+include(KDECMakeSettings)
 include(KDEClangFormat)
 include(ECMSetupVersion)
 include(ECMSourceVersionControl)
@@ -77,10 +65,8 @@ qt_policy(SET QTP0004 NEW)
 add_subdirectory(src)
 ki18n_install(po)
 
-if(UNIX AND NOT APPLE AND NOT ANDROID)
-    install(FILES org.kde.shelf.desktop DESTINATION ${KDE_INSTALL_APPDIR})
-    install(FILES org.kde.shelf.metainfo.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
-endif()
+install(FILES org.kde.shelf.desktop DESTINATION ${KDE_INSTALL_APPDIR})
+install(FILES org.kde.shelf.metainfo.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 

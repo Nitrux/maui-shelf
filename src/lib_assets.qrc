@@ -1,12 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>assets/draw-watercolor.svg</file>
-        <file>assets/document-open.svg</file>
         <file>assets/document-new.svg</file>
         <file>assets/shelf.svg</file>
-        <file>assets/alarm.svg</file>
-        <file>assets/lock.svg</file>
-        <file>views/library/Sidebar.qml</file>
-        <file>views/library/LibraryMenu.qml</file>
     </qresource>
 </RCC>
