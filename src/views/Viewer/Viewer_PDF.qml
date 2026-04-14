@@ -146,6 +146,82 @@ Item
                 Maui.Controls.toolTipText: checked ? i18n("Hide table of contents") : i18n("Show table of contents")
             }
 
+            // Zoom controls (left) + page navigation (always centered)
+            footBar.middleContent: Item
+            {
+                Layout.fillWidth: true
+                implicitHeight: _pageNav.implicitHeight
+
+                Row
+                {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: Maui.Style.space.medium
+
+                    Label
+                    {
+                        text: i18n("Zoom")
+                        font.weight: Font.DemiBold
+                        verticalAlignment: Text.AlignVCenter
+                        height: parent.height
+                    }
+
+                    ToolButton
+                    {
+                        icon.name: "list-remove"
+                        display: ToolButton.IconOnly
+                        enabled: _pdfViewer.pageScale > 1.0
+                        onClicked: _pdfViewer.pageScale = Math.max(1.0, _pdfViewer.pageScale - 0.25)
+                    }
+
+                    Slider
+                    {
+                        from: 1.0
+                        to: 4.0
+                        stepSize: 0.25
+                        value: _pdfViewer.pageScale
+                        implicitWidth: 100
+                        onMoved: _pdfViewer.pageScale = value
+                    }
+
+                    ToolButton
+                    {
+                        icon.name: "list-add"
+                        display: ToolButton.IconOnly
+                        enabled: _pdfViewer.pageScale < 4.0
+                        onClicked: _pdfViewer.pageScale = Math.min(4.0, _pdfViewer.pageScale + 0.25)
+                    }
+                }
+
+                Maui.ToolActions
+                {
+                    id: _pageNav
+                    anchors.centerIn: parent
+                    expanded: true
+                    autoExclusive: false
+                    checkable: false
+
+                    Action
+                    {
+                        enabled: _pdfViewer.currentPage > 0
+                        icon.name: _pdfViewer.orientation === ListView.Horizontal ? "go-previous" : "go-up"
+                        onTriggered: _pdfViewer.previousPage()
+                    }
+
+                    Action
+                    {
+                        text: (_pdfViewer.currentPage + 1) + " / " + _pdfViewer.totalPages
+                    }
+
+                    Action
+                    {
+                        enabled: _pdfViewer.currentPage + 1 < _pdfViewer.totalPages
+                        icon.name: _pdfViewer.orientation === ListView.Horizontal ? "go-next" : "go-down"
+                        onTriggered: _pdfViewer.nextPage()
+                    }
+                }
+            }
+
             onCurrentPageChanged:
             {
                 Shelf.ReadingProgress.saveProgress(control.path,

@@ -27,6 +27,15 @@ Maui.Page
     // the footer. Callers may also bind or set this directly.
     property bool searchVisible: false
 
+    // Zoom scale: 1.0 = fit-to-page, up to 4.0. Driven by Viewer_PDF zoom controls.
+    property real pageScale: 1.0
+
+    // Total page count exposed for Viewer_PDF page navigation label.
+    readonly property int totalPages: poppler.pages
+
+    onPageScaleChanged:   Qt.callLater(_applyZoom)
+    onCurrentPageChanged: Qt.callLater(_applyZoom)
+
     /**
      * @brief Whether to enable the lasso selection, to select multiple items.
      */
@@ -38,6 +47,7 @@ Maui.Page
 
     headBar.visible: true
     footBar.visible: true
+    footBar.forceCenterMiddleContent: true
     title: poppler.title
     padding: 0
 
@@ -92,42 +102,8 @@ Maui.Page
         }
     }
 
-    // ── Footer: page navigation (middle) + search toggle (right) ─────────
-    footBar.middleContent: Maui.ToolActions
-    {
-        Layout.alignment: Qt.AlignHCenter
-        expanded: true
-        autoExclusive: false
-        checkable: false
-
-        Action
-        {
-            enabled: _listView.currentIndex > 0
-            icon.name: _listView.orientation === ListView.Horizontal ? "go-previous" : "go-up"
-            onTriggered:
-            {
-                if (_listView.currentIndex > 0)
-                    _listView.currentIndex = _listView.currentIndex - 1
-            }
-        }
-
-        Action
-        {
-            text: _listView.currentIndex + 1 + " / " + poppler.pages
-        }
-
-        Action
-        {
-            enabled: _listView.currentIndex + 1 < poppler.pages
-            icon.name: _listView.orientation === ListView.Horizontal ? "go-next" : "go-down"
-            onTriggered:
-            {
-                if (_listView.currentIndex + 1 < poppler.pages)
-                    _listView.currentIndex = _listView.currentIndex + 1
-            }
-        }
-    }
-
+    // ── Footer: middleContent is owned by Viewer_PDF (zoom + page nav) ───
+    // footBar.rightContent: search toggle ─────────────────────────────────
     footBar.rightContent: ToolButton
     {
         icon.name: "search"
@@ -148,6 +124,8 @@ Maui.Page
             id: poppler
 
             property bool isLoading: true
+
+            onPathChanged: control.pageScale = 1.0
 
             onPagesLoaded:
             {
@@ -537,5 +515,36 @@ Maui.Page
             _listView.contentY -= bottomDistance - _listView.spacing
         else if (topDistance < 0)
             _listView.contentY += topDistance - _listView.spacing
+    }
+
+    // ── Zoom API ──────────────────────────────────────────────────────────
+
+    function previousPage()
+    {
+        if (_listView.currentIndex > 0)
+            _listView.currentIndex = _listView.currentIndex - 1
+    }
+
+    function nextPage()
+    {
+        if (_listView.currentIndex + 1 < poppler.pages)
+            _listView.currentIndex = _listView.currentIndex + 1
+    }
+
+    function _applyZoom()
+    {
+        const page = _listView.flickable.currentItem
+        if (!page) return
+
+        const newW = page.width  * pageScale
+        const newH = page.height * pageScale
+        const scaleRatio = page.contentWidth > 0 ? newW / page.contentWidth : 1
+        const cx = page.contentX + page.width  / 2
+        const cy = page.contentY + page.height / 2
+
+        page.contentWidth  = newW
+        page.contentHeight = newH
+        page.contentX = Math.max(0, Math.min(cx * scaleRatio - page.width  / 2, newW - page.width))
+        page.contentY = Math.max(0, Math.min(cy * scaleRatio - page.height / 2, newH - page.height))
     }
 }

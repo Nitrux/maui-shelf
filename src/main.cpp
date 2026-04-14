@@ -1,4 +1,5 @@
 #include <QCommandLineParser>
+#include <QDate>
 #include <QIcon>
 #include <QPair>
 #include <QSurfaceFormat>
@@ -36,21 +37,21 @@ int main(int argc, char *argv[])
 
     KLocalizedString::setApplicationDomain("shelf");
     KAboutData about(QStringLiteral("shelf"),
-                     QStringLiteral("Shelf"),
+                     i18n("Shelf"),
                      SHELF_VERSION_STRING,
                      i18n("Browse and view your documents."),
                      KAboutLicense::LGPL_V3,
-                     APP_COPYRIGHT_NOTICE,
+                     i18n("© %1 Made by Nitrux | Built with MauiKit", QString::number(QDate::currentDate().year())),
                      QString(GIT_BRANCH) + "/" + QString(GIT_COMMIT_HASH));
 
     about.addAuthor(QStringLiteral("Camilo Higuita"), i18n("Developer"), QStringLiteral("milo.h@aol.com"));
-    about.setHomepage("https://mauikit.org");
-    about.setProductName("maui/shelf");
+    about.addAuthor(QStringLiteral("Uri Herrera"), i18n("Developer"), QStringLiteral("uri_herrera@nxos.org"));
+    about.setHomepage("https://nxos.org");
+    about.setProductName("nitrux/shelf");
     about.setBugAddress("https://invent.kde.org/maui/shelf/-/issues");
     about.setOrganizationDomain(SHELF_URI);
     about.setProgramLogo(app.windowIcon());
-
-    about.addCredit(i18n("Peruse Developers"));
+    about.setDesktopFileName("org.maui.shelf");
 
     const auto FBData = MauiKitFileBrowsing::aboutData();
     about.addComponent(FBData.name(), MauiKitFileBrowsing::buildVersion(), FBData.version(), FBData.webAddress());

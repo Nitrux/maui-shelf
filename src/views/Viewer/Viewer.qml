@@ -78,17 +78,55 @@ Item
         holder.body: i18n("Open a document file to view it")
         holder.emoji: "folder-open"
 
-        tabBar.leftContent: ToolButton
+        tabViewButton: Component
         {
-            icon.name: "go-previous"
-            display: ToolButton.IconOnly
-            Maui.Controls.toolTipText: i18n("Back to browser")
-            onClicked: toggleViewer()
+            Maui.TabViewButton
+            {
+                id: _tabButton
+                tabView: _tabView
+                closeButtonVisible: !_tabView.mobile
+
+                onClicked:
+                {
+                    if (_tabButton.mindex === _tabView.currentIndex && _tabView.count > 1)
+                    {
+                        _tabView.openOverview()
+                        return
+                    }
+                    _tabView.setCurrentIndex(_tabButton.mindex)
+                }
+
+                onRightClicked: {} // suppress useless platform/accessibility menu
+
+                onCloseClicked: _tabView.closeTabClicked(_tabButton.mindex)
+            }
         }
+
+        tabBar.leftContent: [
+            ToolButton
+            {
+                icon.name: "go-previous"
+                display: ToolButton.IconOnly
+                Maui.Controls.toolTipText: i18n("Back to browser")
+                onClicked: toggleViewer()
+            },
+
+            ToolSeparator
+            {
+                topPadding: 10
+                bottomPadding: 10
+            }
+        ]
 
         onCurrentIndexChanged: console.log("VIEWER CURRENT INDEX CHANGED", currentIndex)
 
         tabBar.rightContent: [
+
+            ToolSeparator
+            {
+                topPadding: 10
+                bottomPadding: 10
+            },
 
             Loader
             {
