@@ -152,7 +152,7 @@ Item
                 Layout.fillWidth: true
                 implicitHeight: _pageNav.implicitHeight
 
-                Row
+                RowLayout
                 {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
@@ -163,7 +163,7 @@ Item
                         text: i18n("Zoom")
                         font.weight: Font.DemiBold
                         verticalAlignment: Text.AlignVCenter
-                        height: parent.height
+                        Layout.alignment: Qt.AlignVCenter
                     }
 
                     ToolButton
@@ -171,6 +171,7 @@ Item
                         icon.name: "list-remove"
                         display: ToolButton.IconOnly
                         enabled: _pdfViewer.pageScale > 1.0
+                        Layout.alignment: Qt.AlignVCenter
                         onClicked: _pdfViewer.pageScale = Math.max(1.0, _pdfViewer.pageScale - 0.25)
                     }
 
@@ -181,6 +182,8 @@ Item
                         stepSize: 0.25
                         value: _pdfViewer.pageScale
                         implicitWidth: 100
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: implicitWidth
                         onMoved: _pdfViewer.pageScale = value
                     }
 
@@ -189,6 +192,7 @@ Item
                         icon.name: "list-add"
                         display: ToolButton.IconOnly
                         enabled: _pdfViewer.pageScale < 4.0
+                        Layout.alignment: Qt.AlignVCenter
                         onClicked: _pdfViewer.pageScale = Math.min(4.0, _pdfViewer.pageScale + 0.25)
                     }
                 }
