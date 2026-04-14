@@ -12,6 +12,7 @@ Item
     id: control
 
     property alias list : _libraryList
+    property var viewerSettings
     property alias flickable : _browser.flickable
     property alias sources : _libraryList.sources
 
@@ -198,6 +199,7 @@ Item
                 list: Shelf.LibraryList
                 {
                     id: _libraryList
+                autoScan: viewerSettings ? viewerSettings.autoScan : true
                 }
             }
 

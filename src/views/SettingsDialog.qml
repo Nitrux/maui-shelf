@@ -72,7 +72,7 @@ Maui.SettingsDialog
         Maui.FlexSectionItem
         {
             label1.text: i18n("Auto Scan")
-            label2.text: i18n("Scan all the document sources on startup to keep your collection up to date.")
+            label2.text: i18n("Automatically rescan document sources while Shelf is open to keep your collection up to date.")
 
             Switch
             {

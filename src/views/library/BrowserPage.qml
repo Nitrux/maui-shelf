@@ -348,6 +348,7 @@ Maui.PageLayout
             list: Shelf.LibraryList
             {
                 id: _libraryList
+                autoScan: viewerSettings.autoScan
             }
         }
 

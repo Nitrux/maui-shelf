@@ -1,6 +1,13 @@
 #include "librarymodel.h"
 
 #include <QDebug>
+#include <QDir>
+#include <QDirIterator>
+#include <QFileInfo>
+#include <QFileSystemWatcher>
+#include <QMimeDatabase>
+#include <QTimer>
+#include <QUrl>
 
 #include <MauiKit4/FileBrowsing/fileloader.h>
 #include <MauiKit4/FileBrowsing/fmstatic.h>
@@ -15,27 +22,38 @@ static FMH::MODEL fileData(const QUrl &url)
     model = FMStatic::getFileInfoModel(url);
 
     const auto fileName = url.fileName();
-    if(fileName.toLower().endsWith("cbr") || fileName.toLower().endsWith("cbz"))
+    if (fileName.toLower().endsWith("cbr") || fileName.toLower().endsWith("cbz"))
     {
         model.insert(FMH::MODEL_KEY::PREVIEW, QString("image://comiccover/").append(url.toLocalFile()));
-
-    }else
+    }
+    else
     {
-        model.insert(FMH::MODEL_KEY::PREVIEW, "image://preview/"+url.toString());
+        model.insert(FMH::MODEL_KEY::PREVIEW, "image://preview/" + url.toString());
     }
 
     return model;
 }
 
-LibraryModel::LibraryModel(QObject *parent) : MauiList(parent)
-  , m_fileLoader(new FMH::FileLoader(parent))
-  , m_sources({"collection:///"})
+LibraryModel::LibraryModel(QObject *parent)
+    : MauiList(parent)
+    , m_fileLoader(new FMH::FileLoader(this))
+    , m_watcher(new QFileSystemWatcher(this))
+    , m_rescanTimer(new QTimer(this))
+    , m_sources({"collection:///"})
 {
-    qRegisterMetaType<LibraryModel*>("const LibraryModel*");
+    qRegisterMetaType<LibraryModel *>("const LibraryModel*");
 
-    //    connect(Library::instance(), &Library::sourcesChanged, this, &LibraryModel::setList);
+    m_rescanTimer->setSingleShot(true);
+    m_rescanTimer->setInterval(250);
 
-    connect(m_fileLoader, &FMH::FileLoader::itemsReady,[this](FMH::MODEL_LIST items)
+    connect(m_rescanTimer, &QTimer::timeout, this, &LibraryModel::rescan);
+
+    connect(m_watcher, &QFileSystemWatcher::directoryChanged, this, [this](const QString &)
+    {
+        scheduleRescan();
+    });
+
+    connect(m_fileLoader, &FMH::FileLoader::itemsReady, this, [this](FMH::MODEL_LIST items)
     {
         Q_EMIT this->preItemsAppended(items.size());
         this->list << items;
@@ -44,61 +62,140 @@ LibraryModel::LibraryModel(QObject *parent) : MauiList(parent)
     });
 
     connect(this, &LibraryModel::sourcesChanged, this, &LibraryModel::setList);
+
+    connect(Library::instance(), &Library::sourcesChanged, this, [this](const QStringList &)
+    {
+        setList(m_sources);
+    });
+}
+
+QStringList LibraryModel::resolvedSources(const QStringList &sources) const
+{
+    QStringList paths = sources;
+
+    if (sources.count() == 1)
+    {
+        const QString source = sources.first();
+        if (source == "comics:///" || source == "documents:///" || source == "text:///" || source == "collection:///")
+        {
+            paths = Library::instance()->sources();
+        }
+    }
+
+    return paths;
+}
+
+void LibraryModel::refreshWatcher(const QStringList &paths)
+{
+    const auto watchedDirectories = m_watcher->directories();
+    if (!watchedDirectories.isEmpty())
+    {
+        m_watcher->removePaths(watchedDirectories);
+    }
+
+    if (!m_autoScan)
+    {
+        return;
+    }
+
+    QStringList directories;
+
+    for (const auto &entry : paths)
+    {
+        const auto url = QUrl::fromUserInput(entry);
+        QString localPath = url.isLocalFile() ? url.toLocalFile() : entry;
+        if (localPath.isEmpty())
+        {
+            continue;
+        }
+
+        QFileInfo info(localPath);
+        if (!info.exists())
+        {
+            continue;
+        }
+
+        const QString rootPath = info.isDir() ? info.absoluteFilePath() : info.absolutePath();
+        if (rootPath.isEmpty())
+        {
+            continue;
+        }
+
+        directories << rootPath;
+
+        QDirIterator it(rootPath, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+        while (it.hasNext())
+        {
+            directories << it.next();
+        }
+    }
+
+    directories.removeDuplicates();
+
+    if (!directories.isEmpty())
+    {
+        m_watcher->addPaths(directories);
+    }
+}
+
+void LibraryModel::scheduleRescan()
+{
+    if (!m_autoScan)
+    {
+        return;
+    }
+
+    m_rescanTimer->start();
 }
 
 void LibraryModel::setList(const QStringList &sources)
 {
     this->clear();
-    QStringList paths = sources;
+    const QStringList paths = resolvedSources(sources);
     QStringList filters;
 
-    if(sources.count() == 1)
+    if (sources.count() == 1)
     {
-        QString source = sources.first();
+        const QString source = sources.first();
 
-        if(source == "comics:///")
+        if (source == "comics:///")
         {
-            paths = Library::instance()->sources();
-
             QMimeDatabase mimedb;
             QStringList types = mimedb.mimeTypeForName("application/vnd.comicbook+zip").suffixes();
             types << mimedb.mimeTypeForName("application/vnd.comicbook+rar").suffixes();
 
-            for(const auto &type : types)
+            for (const auto &type : types)
             {
-                filters << "*."+type;
+                filters << "*." + type;
             }
-
-        }else if(source == "documents:///")
+        }
+        else if (source == "documents:///")
         {
-            paths = Library::instance()->sources();
-
             QMimeDatabase mimedb;
-            QStringList types = mimedb.mimeTypeForName("application/pdf").suffixes();
+            const QStringList types = mimedb.mimeTypeForName("application/pdf").suffixes();
 
-            for(const auto &type : types)
+            for (const auto &type : types)
             {
-                filters << "*."+type;
+                filters << "*." + type;
             }
-        }else if(source == "text:///")
+        }
+        else if (source == "text:///")
         {
-            paths = Library::instance()->sources();
             filters = FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::TEXT];
-        }else if(source == "collection:///")
-        {
-            paths = Library::instance()->sources();
-            filters = FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::DOCUMENT];
-        }else
+        }
+        else
         {
             filters = FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::DOCUMENT];
         }
-
-    }else
+    }
+    else
     {
         filters = FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::DOCUMENT];
     }
 
     qDebug() << "Using filters for the collection seeker" << filters << QUrl::fromStringList(paths);
+
+    refreshWatcher(paths);
 
     this->m_fileLoader->informer = &fileData;
     this->m_fileLoader->requestPath(QUrl::fromStringList(paths), true, filters);
@@ -111,7 +208,7 @@ const FMH::MODEL_LIST &LibraryModel::items() const
 
 bool LibraryModel::remove(const int &index)
 {
-    if(index >= this->list.size() || index < 0)
+    if (index >= this->list.size() || index < 0)
         return false;
 
     Q_EMIT this->preItemRemoved(index);
@@ -123,13 +220,13 @@ bool LibraryModel::remove(const int &index)
 
 bool LibraryModel::deleteAt(const int &index)
 {
-    if(index >= this->list.size() || index < 0)
+    if (index >= this->list.size() || index < 0)
         return false;
 
     auto url = this->list.at(index).value(FMH::MODEL_KEY::URL);
-    if(remove(index))
+    if (remove(index))
     {
-        if(FMStatic::removeFiles({url}))
+        if (FMStatic::removeFiles({url}))
         {
             return true;
         }
@@ -140,16 +237,15 @@ bool LibraryModel::deleteAt(const int &index)
 
 bool LibraryModel::bookmark(const int &index, const int &)
 {
-    if(index >= this->list.size() || index < 0)
+    if (index >= this->list.size() || index < 0)
         return false;
 
-    //    return this->dba->bookmarkDoc(this->list[index][FMH::MODEL_KEY::URL], value);
     return false;
 }
 
 void LibraryModel::clear()
 {
-    if(this->list.isEmpty())
+    if (this->list.isEmpty())
     {
         return;
     }
@@ -189,6 +285,26 @@ void LibraryModel::setSources(QStringList sources)
     Q_EMIT sourcesChanged(m_sources);
 }
 
+void LibraryModel::setAutoScan(bool autoScan)
+{
+    if (m_autoScan == autoScan)
+        return;
+
+    m_autoScan = autoScan;
+    if (!m_autoScan)
+    {
+        m_rescanTimer->stop();
+    }
+
+    refreshWatcher(resolvedSources(m_sources));
+    Q_EMIT autoScanChanged(m_autoScan);
+
+    if (m_autoScan)
+    {
+        scheduleRescan();
+    }
+}
+
 void LibraryModel::componentComplete()
 {
     this->setList(m_sources);
@@ -202,4 +318,9 @@ QStringList LibraryModel::sources() const
 void LibraryModel::resetSources()
 {
     setSources({"collection:///"});
+}
+
+bool LibraryModel::autoScan() const
+{
+    return m_autoScan;
 }
