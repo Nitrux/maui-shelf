@@ -28,6 +28,8 @@ Maui.SettingsDialog
 {
     id: control
 
+    property var viewerSettings
+
     Maui.InfoDialog
     {
         id: confirmationDialog

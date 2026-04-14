@@ -8,7 +8,7 @@ Library *Library::m_instance = nullptr;
 
 Library::Library(QObject *parent) : QObject(parent)
 {
-    static const auto defaultSources = QStringList({FMStatic::DesktopPath, FMStatic::DownloadsPath, FMStatic::DocumentsPath});
+    static const auto defaultSources = QStringList({FMStatic::DocumentsPath});
 
     QSettings settings;
     settings.beginGroup("Settings");

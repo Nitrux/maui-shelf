@@ -111,7 +111,7 @@ Maui.ApplicationWindow
 
     function openSettingsDialog()
     {
-        var dialog = _settingsDialogComponent.createObject(root)
+        var dialog = _settingsDialogComponent.createObject(root, {viewerSettings: appSettings})
         dialog.open()
     }
 

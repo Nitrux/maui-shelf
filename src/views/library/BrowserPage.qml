@@ -43,6 +43,7 @@ Maui.PageLayout
         Item
         {
             id: _continueReading
+            clip: true
             implicitHeight: _recentLabel.implicitHeight
                             + Maui.Style.space.medium
                             + _recentList.implicitHeight
@@ -257,62 +258,61 @@ Maui.PageLayout
     ]
 
     // Root layout that stacks the continue-reading strip and the browser
-    SplitView
+    Maui.SplitView
     {
         anchors.fill: parent
         orientation: Qt.Vertical
-
-        handle: Rectangle
-        {
-            implicitHeight: 10
-            Maui.Theme.colorSet: Maui.Theme.Window
-            Maui.Theme.inherit: false
-            color: SplitHandle.pressed  ? Maui.Theme.highlightColor
-                 : SplitHandle.hovered  ? Maui.Theme.hoverColor
-                 :                        Maui.Theme.separatorColor
-
-            Rectangle
-            {
-                anchors.centerIn: parent
-                width: 28
-                height: 2
-                radius: 1
-                color: SplitHandle.pressed ? Maui.Theme.highlightedTextColor
-                     : Maui.Theme.textColor
-                opacity: SplitHandle.hovered ? 0.6 : 0.25
-            }
-        }
+        background: null
 
         // ── Continue Reading strip (only when recent files exist) ─────────
-        Loader
+        Maui.SplitViewItem
         {
-            id: _continueLoader
+            padding: 0
+            background: null
+            clip: true
+            autoClose: false
+            visible: Shelf.ReadingProgress.recentFiles.length > 0
             SplitView.fillWidth: true
-            SplitView.preferredHeight: 220
-            SplitView.minimumHeight: active ? 120 : 0
-            SplitView.maximumHeight: active ? 400 : 0
-            active: Shelf.ReadingProgress.recentFiles.length > 0
-            visible: active
-            asynchronous: true
-            sourceComponent: _continueReadingComponent
+            SplitView.preferredHeight: visible ? 220 : 0
+            SplitView.minimumHeight: visible ? 120 : 0
+            SplitView.maximumHeight: visible ? 400 : 0
 
-            Connections
+            Loader
             {
-                target: Shelf.ReadingProgress
-                function onRecentFilesChanged()
+                id: _continueLoader
+                anchors.fill: parent
+                active: Shelf.ReadingProgress.recentFiles.length > 0
+                visible: active
+                asynchronous: true
+                sourceComponent: _continueReadingComponent
+
+                Connections
                 {
-                    _continueLoader.active = Shelf.ReadingProgress.recentFiles.length > 0
+                    target: Shelf.ReadingProgress
+                    function onRecentFilesChanged()
+                    {
+                        _continueLoader.active = Shelf.ReadingProgress.recentFiles.length > 0
+                    }
                 }
             }
         }
 
         // ── Main browser ──────────────────────────────────────────────────
-        Maui.AltBrowser
+        Maui.SplitViewItem
         {
-            id: _browser
+            padding: 0
+            background: null
+            clip: true
+            autoClose: false
             SplitView.fillWidth: true
             SplitView.fillHeight: true
-            background: null
+
+            Maui.AltBrowser
+            {
+                id: _browser
+                anchors.fill: parent
+                clip: true
+                background: null
             headBar.visible: false
             viewType: viewerSettings.viewType
         enableLassoSelection: true
@@ -336,14 +336,6 @@ Maui.PageLayout
         holder.title: i18n("Nothing here!")
         holder.body: i18n("Add sources to manage your documents.")
         holder.emoji: "qrc:/assets/document-new.svg"
-        holder.actions: [
-            Action
-            {
-                text: i18n("Add sources")
-                onTriggered: windowRoot.openSettingsDialog()
-            }
-        ]
-
         model: Maui.BaseModel
         {
             id: _libraryModel
@@ -518,6 +510,7 @@ Maui.PageLayout
             }
         }
     }
+        }
 
     } // end SplitView
 

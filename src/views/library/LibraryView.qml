@@ -187,14 +187,6 @@ Item
             holder.title: i18n("Nothing here!")
             holder.body: i18n("Add new sources to manage your documents.")
             holder.emoji: "qrc:/assets/document-new.svg"
-            holder.actions:[
-                Action
-                {
-                    text: i18n("Add sources")
-                    onTriggered: openSettingsDialog()
-                }
-            ]
-
             model: Maui.BaseModel
             {
                 id: _libraryModel
@@ -475,7 +467,7 @@ Item
 
     function openSettingsDialog()
     {
-        var dialog = _settingsDialogComponent.createObject(root)
+        var dialog = _settingsDialogComponent.createObject(root, {viewerSettings: viewerSettings})
         dialog.open()
     }
 }
