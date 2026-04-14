@@ -21,17 +21,6 @@ Item
     property var _openPaths: ({})
     //    onGoBackTriggered: _stackView.pop()
 
-    Component
-    {
-        id: _doodleComponent
-        Maui.Doodle
-        {
-            sourceItem: currentViewer.currentItem
-            hint: 1
-            onClosed: destroy()
-        }
-    }
-
     Loader
     {
         anchors.fill: parent
@@ -86,15 +75,7 @@ Item
                 tabView: _tabView
                 closeButtonVisible: !_tabView.mobile
 
-                onClicked:
-                {
-                    if (_tabButton.mindex === _tabView.currentIndex && _tabView.count > 1)
-                    {
-                        _tabView.openOverview()
-                        return
-                    }
-                    _tabView.setCurrentIndex(_tabButton.mindex)
-                }
+                onClicked: _tabView.setCurrentIndex(_tabButton.mindex)
 
                 onRightClicked: {} // suppress useless platform/accessibility menu
 
@@ -134,34 +115,6 @@ Item
                 sourceComponent: Maui.ToolButtonMenu
                 {
                     icon.name: "overflow-menu"
-
-                    Maui.MenuItemActionRow
-                    {
-                        Action
-                        {
-                            icon.name: "tool_pen"
-                            text: i18n("Doodle")
-
-                            onTriggered:
-                            {
-                                var dialog = _doodleComponent.createObject(root)
-                                dialog.open()
-                            }
-                        }
-
-                        Action
-                        {
-                            icon.name: "document-share"
-                            text: i18n("Share")
-
-                            onTriggered:
-                            {
-                                Maui.Platform.shareFiles([control.currentPath])
-                            }
-                        }
-                    }
-
-                    MenuSeparator {}
 
                     MenuItem
                     {

@@ -36,6 +36,13 @@ Maui.Page
     onPageScaleChanged:   Qt.callLater(_applyZoom)
     onCurrentPageChanged: Qt.callLater(_applyZoom)
 
+    Connections
+    {
+        target: _listView
+        function onWidthChanged() { Qt.callLater(control._applyZoom) }
+        function onHeightChanged() { Qt.callLater(control._applyZoom) }
+    }
+
     /**
      * @brief Whether to enable the lasso selection, to select multiple items.
      */
@@ -182,6 +189,22 @@ Maui.Page
                 width: pageImg.image.paintedWidth
                 anchors.centerIn: parent
 
+                // Maui.ImageViewer toggles its own zoom on double click/tap.
+                // Shelf uses the dedicated zoom slider instead, so swallow that gesture here.
+                MouseArea
+                {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton
+                    propagateComposedEvents: true
+                    preventStealing: false
+
+                    onPressed: (mouse) => mouse.accepted = false
+                    onReleased: (mouse) => mouse.accepted = false
+                    onClicked: (mouse) => mouse.accepted = false
+                    onPressAndHold: (mouse) => mouse.accepted = false
+                    onDoubleClicked: (mouse) => mouse.accepted = true
+                }
+
                 Rectangle
                 {
                     visible: __currentSearchResult.page === index
@@ -242,6 +265,7 @@ Maui.Page
                                 return
                             }
                         }
+
 
                         onPositionChanged: (mouse) =>
                         {
