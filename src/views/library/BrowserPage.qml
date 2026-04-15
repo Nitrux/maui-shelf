@@ -37,11 +37,12 @@ Maui.PageLayout
         Item
         {
             id: _continueReading
-            clip: true
+            // implicitHeight drives the outer container's preferred height:
+            // label + gap + desired flickable area + bottom margin
             implicitHeight: _recentLabel.implicitHeight
                             + Maui.Style.space.medium
-                            + _recentList.implicitHeight
-                            + Maui.Style.space.big
+                            + 172
+                            + Maui.Style.space.medium
 
             Label
             {
@@ -74,7 +75,8 @@ Maui.PageLayout
                 anchors.topMargin: Maui.Style.space.medium
                 anchors.left: parent.left
                 anchors.right: parent.right
-                implicitHeight: 172
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: Maui.Style.space.medium
                 clip: true
                 contentWidth: _recentRow.width + (horizontalPadding * 2)
                 contentHeight: height
