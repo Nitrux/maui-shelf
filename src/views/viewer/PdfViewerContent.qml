@@ -1,10 +1,3 @@
-// Vendored from MauiKit4 Documents – org.mauikit.documents PDFViewer.qml
-// Shelf-specific changes:
-//   • footBar.rightContent: search-toggle button (replaces always-visible bar)
-//   • footerColumn (search bar) hidden by default; shown via toggle
-//   • footBar.leftContent left empty so callers (Viewer_PDF) can inject their
-//     own controls (e.g. the TOC toggle)
-
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -16,21 +9,16 @@ Maui.Page
 {
     id: control
 
-    property bool fitWidth: false
     property int currentPage : _listView.currentIndex
     property alias currentItem : _listView.currentItem
     property alias orientation : _listView.orientation
     property alias path : poppler.path
     property color searchHighlightColor: Qt.rgba(1, 1, .2, .4)
 
-    // Set to true to show the search bar; toggled by the search button in
-    // the footer. Callers may also bind or set this directly.
     property bool searchVisible: false
 
-    // Zoom scale: 1.0 = fit-to-page, up to 4.0. Driven by Viewer_PDF zoom controls.
     property real pageScale: 1.0
 
-    // Total page count exposed for Viewer_PDF page navigation label.
     readonly property int totalPages: poppler.pages
 
     onPageScaleChanged:   Qt.callLater(_applyZoom)
@@ -43,9 +31,6 @@ Maui.Page
         function onHeightChanged() { Qt.callLater(control._applyZoom) }
     }
 
-    /**
-     * @brief Whether to enable the lasso selection, to select multiple items.
-     */
     property bool enableLassoSelection : true
 
     signal areaClicked(var mouse)
@@ -68,7 +53,6 @@ Maui.Page
         onFinished: poppler.unlock(text, text)
     }
 
-    // ── Search bar (footer column, only when searchVisible) ───────────────
     footerColumn: Maui.ToolBar
     {
         visible: control.searchVisible
@@ -109,8 +93,6 @@ Maui.Page
         }
     }
 
-    // ── Footer: middleContent is owned by Viewer_PDF (zoom + page nav) ───
-    // footBar.rightContent: search toggle ─────────────────────────────────
     footBar.rightContent: ToolButton
     {
         icon.name: "search"
@@ -120,7 +102,6 @@ Maui.Page
         onToggled: control.searchVisible = checked
     }
 
-    // ── Page list ─────────────────────────────────────────────────────────
     Maui.ListBrowser
     {
         id: _listView
@@ -189,8 +170,6 @@ Maui.Page
                 width: pageImg.image.paintedWidth
                 anchors.centerIn: parent
 
-                // Maui.ImageViewer toggles its own zoom on double click/tap.
-                // Shelf uses the dedicated zoom slider instead, so swallow that gesture here.
                 MouseArea
                 {
                     anchors.fill: parent
@@ -413,8 +392,6 @@ Maui.Page
         }
     }
 
-    // ── Public API ────────────────────────────────────────────────────────
-
     function open(filePath)
     {
         poppler.path = filePath
@@ -424,8 +401,6 @@ Maui.Page
     {
         _listView.flickable.positionViewAtIndex(destination.page, ListView.Beginning)
     }
-
-    // ── Search ────────────────────────────────────────────────────────────
 
     signal searchNotFound
     signal searchRestartedFromTheBeginning
@@ -540,8 +515,6 @@ Maui.Page
         else if (topDistance < 0)
             _listView.contentY += topDistance - _listView.spacing
     }
-
-    // ── Zoom API ──────────────────────────────────────────────────────────
 
     function previousPage()
     {

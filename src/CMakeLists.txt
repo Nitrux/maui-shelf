@@ -22,17 +22,15 @@ qt_add_qml_module(${PROJECT_NAME} URI app.maui.shelf
     NO_PLUGIN
     QML_FILES
     main.qml
-    views/library/LibraryView.qml
     views/library/BrowserPage.qml
-    views/library/FloatingViewer.qml
     views/library/LibraryMenu.qml
-    views/Viewer/Viewer.qml
-    views/Viewer/PDFViewer.qml
-    views/Viewer/Viewer_PDF.qml
-    views/Viewer/Viewer_TXT.qml
-    views/Viewer/Viewer_EPUB.qml
+    views/viewer/DocumentViewer.qml
+    views/viewer/PdfViewerContent.qml
+    views/viewer/PdfViewer.qml
+    views/viewer/TextViewer.qml
+    views/viewer/EpubViewer.qml
     views/SettingsDialog.qml
-    views/Viewer/Viewer_CB.qml)
+    views/viewer/ComicViewer.qml)
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)

@@ -16,10 +16,7 @@ Item
     readonly property alias tabView : _tabView
     readonly property string title : _tabView.currentItem ? _tabView.currentItem.title : ""
 
-    // Maps file path → tab index so we can switch to an already-open document
-    // rather than opening it again. Updated in open() and onCloseTabClicked.
     property var _openPaths: ({})
-    //    onGoBackTriggered: _stackView.pop()
 
     Loader
     {
@@ -44,8 +41,6 @@ Item
         Maui.Controls.showCSD: control.Maui.Controls.showCSD
         onCloseTabClicked:
         {
-            // Remove the closing entry, shift down every index above it,
-            // and remove the document from the Continue Reading list.
             var closing = index
             var updated = {}
             var closingPath = ""
@@ -99,8 +94,6 @@ Item
             }
         ]
 
-        onCurrentIndexChanged: console.log("VIEWER CURRENT INDEX CHANGED", currentIndex)
-
         tabBar.rightContent: [
 
             ToolSeparator
@@ -129,18 +122,6 @@ Item
                         }
                     }
 
-                    //            MenuItem
-                    //            {
-                    //                icon.name:  "zoom-fit-width"
-                    //                text: i18n("Fill")
-                    //                checkable: true
-                    //                checked: currentViewer.fitWidth
-                    //                onTriggered:
-                    //                {
-                    //                    currentViewer.fitWidth= !currentViewer.fitWidth
-                    //                }
-                    //            }
-
                     MenuItem
                     {
                         text: i18n("Fullscreen")
@@ -158,7 +139,7 @@ Item
     {
         id: _pdfComponent
 
-        Viewer_PDF
+        PdfViewer
         {
             Maui.Controls.title: title
             Maui.Controls.toolTipText: path
@@ -169,21 +150,29 @@ Item
     {
         id: _txtComponent
 
-        Viewer_TXT {}
+        TextViewer
+        {
+            Maui.Controls.title: title
+            Maui.Controls.toolTipText: path
+        }
     }
 
     Component
     {
         id: _epubComponent
 
-        Viewer_EPUB {}
+        EpubViewer
+        {
+            Maui.Controls.title: title
+            Maui.Controls.toolTipText: path
+        }
     }
 
     Component
     {
         id: _CBComponent
 
-        Viewer_CB
+        ComicViewer
         {
             Maui.Controls.title: title
             Maui.Controls.toolTipText: path
@@ -194,15 +183,12 @@ Item
 
     function open(path)
     {
-        // Normalise to file:// URL so the _openPaths key always matches
-        // regardless of whether the caller passed a local path or a URL.
         if (path.indexOf("://") < 0)
             path = "file://" + path
 
         if (!FB.FM.fileExists(path))
             return
 
-        // If the document is already open, switch to its tab instead
         if (_openPaths.hasOwnProperty(path))
         {
             _tabView.currentIndex = _openPaths[path]
@@ -225,7 +211,6 @@ Item
         else
             return
 
-        // Record the new tab's index (addTab makes it current)
         _openPaths[path] = _tabView.currentIndex
     }
 }

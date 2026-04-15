@@ -1,0 +1,72 @@
+import QtQuick 
+import QtQuick.Controls
+import QtQuick.Window 
+
+import org.mauikit.controls as Maui
+import org.mauikit.filebrowsing as FB
+
+import org.mauikit.documents as Peruse
+
+import org.maui.shelf as Shelf
+
+Maui.Page
+{
+    id: control
+    property string path
+
+    title: _model.title
+    property int imageWidth : control.width
+    property int imageHeight : control.height
+
+    property bool twoPagesMode : true
+    property alias orientation : _listView.orientation
+
+    headBar.visible: false
+
+    footBar.leftContent: ToolButton
+    {
+        icon.name: "view-dual-symbolic"
+        checked: control.twoPagesMode
+        onClicked: control.twoPagesMode = !control.twoPagesMode
+    }
+
+    ListView
+    {
+        id: _listView
+        anchors.fill: parent
+        orientation: ListView.Horizontal
+        snapMode: control.twoPagesMode ? ListView.SnapPosition : ListView.SnapOneItem
+        cacheBuffer: 3000
+
+        onMovementEnded:
+        {
+            var indexHere = indexAt(contentX + width / 2, contentY + height / 2);
+            if(currentIndex !== indexHere) {
+                currentIndex = indexHere;
+            }
+        }
+
+        model: Peruse.ArchiveBookModel
+        {
+            id: _model
+            qmlEngine: globalQmlEngine
+        }
+
+        delegate: Maui.ImageViewer
+        {
+            source: model.url
+            height: ListView.view.height
+            width: Math.floor(ListView.view.width / (control.twoPagesMode ? 2 : 1))
+            fillMode: Image.PreserveAspectFit
+            asynchronous: true
+
+        }
+    }
+
+    Component.onCompleted:
+    {
+        _model.filename = control.path.replace("file://", "")
+        Shelf.ReadingProgress.markOpened(control.path)
+    }
+
+}

@@ -5,6 +5,8 @@
 
 #include <MauiKit4/FileBrowsing/fmstatic.h>
 
+#include "library.h"
+
 ReadingProgress *ReadingProgress::m_instance = nullptr;
 
 ReadingProgress::ReadingProgress(QObject *parent) : QObject(parent)
@@ -28,7 +30,6 @@ QString ReadingProgress::encodeKey(const QString &url)
         QCryptographicHash::hash(url.toUtf8(), QCryptographicHash::Md5).toHex());
 }
 
-// Normalise any local path or file:// URL to a canonical file:// URL string.
 static QString normalizeUrl(const QString &url)
 {
     return QUrl::fromUserInput(url).toString();
@@ -98,11 +99,15 @@ QVariantList ReadingProgress::recentFiles() const
 
         QVariantMap info = FMStatic::getFileInfo(qurl);
 
-        // Ensure preview thumbnail is set for the image provider
-        if (!info.contains(QStringLiteral("preview")) || info.value(QStringLiteral("preview")).toString().isEmpty())
-            info.insert(QStringLiteral("preview"), QStringLiteral("image://preview/") + qurl.toString());
+        QString preview = info.value(QStringLiteral("thumbnail")).toString();
+        if (Library::instance()->isCommicBook(url))
+            preview = QStringLiteral("image://comiccover/") + qurl.toLocalFile();
+        else if (Library::instance()->isPDF(url))
+            preview = QStringLiteral("image://preview/") + qurl.toString();
 
-        // Inject reading progress keys
+        if (!preview.isEmpty())
+            info.insert(QStringLiteral("preview"), preview);
+
         const auto key = encodeKey(url);
         QSettings settings;
         settings.beginGroup(QStringLiteral("ReadingProgress"));

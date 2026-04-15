@@ -54,21 +54,6 @@ Maui.SettingsDialog
     Maui.SectionGroup
     {
         title: i18n("General")
-        //        description: i18n("Configure the app plugins and behavior.")
-
-        //        Maui.SectionItem
-        //        {
-        //            label1.text: i18n("Thumbnails")
-        //            label2.text: i18n("Show thumbnail previews")
-
-        //            Switch
-        //            {
-        //                checkable: true
-        //                checked: viewerSettings.fetchArtwork
-        //                onToggled:  viewerSettings.fetchArtwork = !viewerSettings.fetchArtwork
-        //            }
-        //        }
-
         Maui.FlexSectionItem
         {
             label1.text: i18n("Auto Scan")
@@ -110,7 +95,6 @@ Maui.SettingsDialog
     Maui.SectionGroup
     {
         title: i18n("Sources")
-        //        description: i18n("Add or remove sources")
 
         ColumnLayout
         {
@@ -149,7 +133,6 @@ Maui.SettingsDialog
             {
                 Layout.fillWidth: true
                 text: i18n("Add")
-                //                flat: true
                 onClicked:
                 {
                     var props = ({'browser.settings.onlyDirs' : true,

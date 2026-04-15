@@ -8,9 +8,6 @@ import org.mauikit.documents as Poppler
 
 import org.maui.shelf as Shelf
 
-// ── Internal model for the active collection filter ──────────────────────────
-// sources are set by the filter TabBar below; defaults to "collection:///".
-
 Maui.PageLayout
 {
     id: root
@@ -33,9 +30,6 @@ Maui.PageLayout
         model: _libraryModel
     }
 
-    // ── Continue Reading section ──────────────────────────────────────────
-    // Shown as a floating strip at the top of the scroll area when there are
-    // recently opened files tracked by ReadingProgress.
     Component
     {
         id: _continueReadingComponent
@@ -94,7 +88,7 @@ Maui.PageLayout
                     height: _recentList.height
                     width: 148
 
-                    imageSource: viewerSettings.showThumbnails ? (modelData.preview || "") : ""
+                    imageSource: viewerSettings.showThumbnails ? (modelData.preview || modelData.thumbnail || "") : ""
                     iconSource: modelData.icon || "application-pdf"
                     iconSizeHint: Maui.Style.iconSizes.big
                     imageHeight: 80
@@ -257,23 +251,26 @@ Maui.PageLayout
         }
     ]
 
-    // Root layout that stacks the continue-reading strip and the browser
+    readonly property bool hasRecentFiles: Shelf.ReadingProgress.recentFiles.length > 0
+    readonly property int recentSectionHeight: hasRecentFiles
+                                              ? Math.min(220, Math.max(140, Math.round(height * 0.24)))
+                                              : 0
+
     Maui.SplitView
     {
         anchors.fill: parent
         orientation: Qt.Vertical
         background: null
 
-        // ── Continue Reading strip (only when recent files exist) ─────────
         Maui.SplitViewItem
         {
             padding: 0
             background: null
             clip: true
             autoClose: false
-            visible: Shelf.ReadingProgress.recentFiles.length > 0
+            visible: root.hasRecentFiles
             SplitView.fillWidth: true
-            SplitView.preferredHeight: visible ? 220 : 0
+            SplitView.preferredHeight: root.recentSectionHeight
             SplitView.minimumHeight: visible ? 120 : 0
             SplitView.maximumHeight: visible ? 400 : 0
 
@@ -281,7 +278,7 @@ Maui.PageLayout
             {
                 id: _continueLoader
                 anchors.fill: parent
-                active: Shelf.ReadingProgress.recentFiles.length > 0
+                active: root.hasRecentFiles
                 visible: active
                 asynchronous: true
                 sourceComponent: _continueReadingComponent
@@ -291,13 +288,12 @@ Maui.PageLayout
                     target: Shelf.ReadingProgress
                     function onRecentFilesChanged()
                     {
-                        _continueLoader.active = Shelf.ReadingProgress.recentFiles.length > 0
+                        _continueLoader.active = root.hasRecentFiles
                     }
                 }
             }
         }
 
-        // ── Main browser ──────────────────────────────────────────────────
         Maui.SplitViewItem
         {
             padding: 0
@@ -367,7 +363,7 @@ Maui.PageLayout
                 isCurrentItem: parent.GridView.isCurrentItem || checked
                 label1.text: model.label
                 label2.text: Maui.Handy.formatSize(model.size)
-                imageSource: viewerSettings.showThumbnails ? model.preview : ""
+                imageSource: viewerSettings.showThumbnails ? (model.thumbnail || model.preview || "") : ""
                 iconSource: model.icon
                 iconSizeHint: Maui.Style.iconSizes.huge
                 template.labelSizeHint: 32
@@ -445,7 +441,7 @@ Maui.PageLayout
             label1.text: model.label
             label2.text: Maui.Handy.formatSize(model.size)
             label3.text: Qt.formatDateTime(new Date(model.modified), "d MMM yyyy")
-            imageSource: viewerSettings.showThumbnails ? model.preview : ""
+            imageSource: viewerSettings.showThumbnails ? (model.thumbnail || model.preview || "") : ""
             iconSource: model.icon
             iconSizeHint: Maui.Style.iconSizes.medium
             checkable: root.selectionMode
@@ -528,7 +524,7 @@ Maui.PageLayout
             height: Maui.Style.iconSizes.big + Maui.Style.space.small
             label1.text: ""
             label2.text: ""
-            imageSource: viewerSettings.showThumbnails ? model.preview : ""
+            imageSource: viewerSettings.showThumbnails ? (model.thumbnail || model.preview || "") : ""
             iconSource: model.icon
             iconSizeHint: Maui.Style.iconSizes.big
             checked: true

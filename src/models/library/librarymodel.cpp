@@ -16,19 +16,68 @@
 
 #include "library.h"
 
-static FMH::MODEL fileData(const QUrl &url)
+static QStringList libraryFiltersForSource(const QString &source)
 {
-    FMH::MODEL model;
-    model = FMStatic::getFileInfoModel(url);
+    QMimeDatabase mimedb;
 
-    const auto fileName = url.fileName();
-    if (fileName.toLower().endsWith("cbr") || fileName.toLower().endsWith("cbz"))
+    auto appendSuffixFilters = [](QStringList &filters, const QStringList &suffixes)
     {
-        model.insert(FMH::MODEL_KEY::PREVIEW, QString("image://comiccover/").append(url.toLocalFile()));
+        for (const auto &suffix : suffixes)
+            filters << "*." + suffix;
+    };
+
+    QStringList filters;
+
+    if (source == "comics:///")
+    {
+        QStringList types = mimedb.mimeTypeForName("application/vnd.comicbook+zip").suffixes();
+        types << mimedb.mimeTypeForName("application/vnd.comicbook+rar").suffixes();
+        appendSuffixFilters(filters, types);
+    }
+    else if (source == "documents:///")
+    {
+        appendSuffixFilters(filters, mimedb.mimeTypeForName("application/pdf").suffixes());
+    }
+    else if (source == "text:///")
+    {
+        filters = FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::TEXT];
     }
     else
     {
-        model.insert(FMH::MODEL_KEY::PREVIEW, "image://preview/" + url.toString());
+        filters = FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::DOCUMENT];
+        filters << FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::TEXT];
+
+        QStringList comicTypes = mimedb.mimeTypeForName("application/vnd.comicbook+zip").suffixes();
+        comicTypes << mimedb.mimeTypeForName("application/vnd.comicbook+rar").suffixes();
+        appendSuffixFilters(filters, comicTypes);
+
+        filters << "*.epub";
+        filters.removeDuplicates();
+    }
+
+    return filters;
+}
+
+static FMH::MODEL fileData(const QUrl &url)
+{
+    FMH::MODEL model = FMStatic::getFileInfoModel(url);
+
+    QString thumbnail = model.value(FMH::MODEL_KEY::THUMBNAIL);
+    const QString fileName = url.fileName().toLower();
+
+    if (fileName.endsWith(QStringLiteral("cbr")) || fileName.endsWith(QStringLiteral("cbz")))
+    {
+        thumbnail = QStringLiteral("image://comiccover/") + url.toLocalFile();
+    }
+    else if (Library::instance()->isPDF(url.toString()))
+    {
+        thumbnail = QStringLiteral("image://preview/") + url.toString();
+    }
+
+    if (!thumbnail.isEmpty())
+    {
+        model.insert(FMH::MODEL_KEY::THUMBNAIL, thumbnail);
+        model.insert(FMH::MODEL_KEY::PREVIEW, thumbnail);
     }
 
     return model;
@@ -152,46 +201,8 @@ void LibraryModel::setList(const QStringList &sources)
 {
     this->clear();
     const QStringList paths = resolvedSources(sources);
-    QStringList filters;
-
-    if (sources.count() == 1)
-    {
-        const QString source = sources.first();
-
-        if (source == "comics:///")
-        {
-            QMimeDatabase mimedb;
-            QStringList types = mimedb.mimeTypeForName("application/vnd.comicbook+zip").suffixes();
-            types << mimedb.mimeTypeForName("application/vnd.comicbook+rar").suffixes();
-
-            for (const auto &type : types)
-            {
-                filters << "*." + type;
-            }
-        }
-        else if (source == "documents:///")
-        {
-            QMimeDatabase mimedb;
-            const QStringList types = mimedb.mimeTypeForName("application/pdf").suffixes();
-
-            for (const auto &type : types)
-            {
-                filters << "*." + type;
-            }
-        }
-        else if (source == "text:///")
-        {
-            filters = FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::TEXT];
-        }
-        else
-        {
-            filters = FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::DOCUMENT];
-        }
-    }
-    else
-    {
-        filters = FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::DOCUMENT];
-    }
+    const QString source = sources.count() == 1 ? sources.first() : QStringLiteral("collection:///");
+    const QStringList filters = libraryFiltersForSource(source);
 
     qDebug() << "Using filters for the collection seeker" << filters << QUrl::fromStringList(paths);
 

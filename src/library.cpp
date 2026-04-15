@@ -1,6 +1,8 @@
 #include "library.h"
 
+#include <QFile>
 #include <QSettings>
+#include <QTextStream>
 
 #include <MauiKit4/FileBrowsing/fmstatic.h>
 
@@ -49,19 +51,14 @@ QStringList Library::sources() const
 void Library::openFiles(QStringList files)
 {
     QList<QUrl> res;
-    for(const auto &file : files)
+    for (const auto &file : files)
     {
         const auto url = QUrl::fromUserInput(file);
-        if(FMStatic::isDir(url))
-        {
+        if (FMStatic::isDir(url))
             continue;
-        }else
-        {
-            if(FMStatic::checkFileType(FMStatic::FILTER_TYPE::DOCUMENT, FMStatic::getMime(url)))
-            {
-                res << url;
-            }
-        }
+
+        if (isSupported(url.toString()))
+            res << url;
     }
 
     Q_EMIT this->requestedFiles(res);
@@ -94,21 +91,40 @@ void Library::addSources(const QStringList &urls)
 
 bool Library::isPDF(const QString &url)
 {
-    return FMStatic::getMime(url) == "application/pdf";
+    return FMStatic::getMime(QUrl::fromUserInput(url)) == QStringLiteral("application/pdf");
 }
 
 bool Library::isPlainText(const QString &url)
 {
-    return FMStatic::checkFileType(FMStatic::FILTER_TYPE::TEXT, FMStatic::getMime(url));
+    return FMStatic::checkFileType(FMStatic::FILTER_TYPE::TEXT, FMStatic::getMime(QUrl::fromUserInput(url)));
 }
 
 bool Library::isEpub(const QString &url)
 {
-    return url.endsWith(".epub", Qt::CaseSensitivity::CaseInsensitive);
+    return QUrl::fromUserInput(url).toString().endsWith(QStringLiteral(".epub"), Qt::CaseInsensitive);
 }
 
 bool Library::isCommicBook(const QString &url)
 {
-    auto mime = FMStatic::getMime(url);
-    return mime == "application/vnd.comicbook+zip" || mime == "application/vnd.comicbook+rar";
+    const auto mime = FMStatic::getMime(QUrl::fromUserInput(url));
+    return mime == QStringLiteral("application/vnd.comicbook+zip") || mime == QStringLiteral("application/vnd.comicbook+rar");
+}
+
+bool Library::isSupported(const QString &url)
+{
+    return isPDF(url) || isPlainText(url) || isEpub(url) || isCommicBook(url);
+}
+
+QString Library::readTextFile(const QString &url) const
+{
+    const QUrl fileUrl = QUrl::fromUserInput(url);
+    if (!fileUrl.isLocalFile())
+        return {};
+
+    QFile file(fileUrl.toLocalFile());
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return {};
+
+    QTextStream stream(&file);
+    return stream.readAll();
 }

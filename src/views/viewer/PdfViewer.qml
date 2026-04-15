@@ -6,11 +6,6 @@ import org.mauikit.controls as Maui
 import org.mauikit.documents as Poppler
 import org.maui.shelf as Shelf
 
-/**
- * Wrapper around Poppler.PDFViewer that adds:
- *  - A collapsible TOC sidebar driven by a secondary Document instance
- *  - Reading-progress persistence via Shelf.ReadingProgress
- */
 Item
 {
     id: control
@@ -20,8 +15,6 @@ Item
     property alias currentItem: _pdfViewer.currentItem
     readonly property int currentPage: _pdfViewer.currentPage
 
-    // Use the filename (without extension) as the tab title.
-    // PDF internal metadata titles are often wrong (e.g. "Microsoft Word – Document1").
     readonly property string title:
     {
         if (control.path.length === 0)
@@ -32,7 +25,6 @@ Item
         return lastDot > 0 ? fname.substring(0, lastDot) : fname
     }
 
-    // ── Secondary Document used ONLY for tocModel / page count ────────────
     Poppler.Document
     {
         id: _tocDoc
@@ -40,12 +32,10 @@ Item
 
         onPagesLoaded:
         {
-            // Restore the last saved reading position once the document is ready
             _restoreTimer.start()
         }
     }
 
-    // Small delay so the ListView inside PDFViewer has time to fully populate
     Timer
     {
         id: _restoreTimer
@@ -54,22 +44,15 @@ Item
         {
             const savedPage = Shelf.ReadingProgress.getProgress(control.path)
             if (savedPage > 0)
-            {
-                // __goTo navigates to the correct page; the secondary line in
-                // that function may log a harmless JS error if poppler.pages is
-                // an integer rather than an array – navigation still succeeds.
                 _pdfViewer.__goTo({ page: savedPage, top: 0 })
-            }
         }
     }
 
-    // ── Layout: optional TOC panel + main PDF viewer ──────────────────────
     RowLayout
     {
         anchors.fill: parent
         spacing: 0
 
-        // TOC sidebar ──────────────────────────────────────────────────────
         Maui.Page
         {
             id: _tocPanel
@@ -99,8 +82,6 @@ Item
                 {
                     width: ListView.view.width
 
-                    // tocModel items expose "title" for chapter name and
-                    // "page" for the 0-indexed destination page.
                     template.label1.text: model.title || model.name || i18n("(untitled)")
                     template.label2.text: model.page !== undefined
                                           ? i18n("Page %1", model.page + 1)
@@ -115,7 +96,6 @@ Item
             }
         }
 
-        // Thin separator between panel and viewer
         Rectangle
         {
             visible: _tocPanel.visible
@@ -124,8 +104,7 @@ Item
             color: Maui.Theme.separatorColor
         }
 
-        // PDF viewer (vendored) ───────────────────────────────────────────
-        PDFViewer
+        PdfViewerContent
         {
             id: _pdfViewer
             Layout.fillWidth: true
@@ -134,8 +113,6 @@ Item
             path: control.path
             headBar.visible: false
 
-            // Inject the TOC toggle into the footer's left side.
-            // The vendored PDFViewer leaves footBar.leftContent empty for callers.
             footBar.leftContent: ToolButton
             {
                 id: _tocToggle
@@ -146,7 +123,6 @@ Item
                 Maui.Controls.toolTipText: checked ? i18n("Hide table of contents") : i18n("Show table of contents")
             }
 
-            // Zoom controls (left) + page navigation (always centered)
             footBar.middleContent: Item
             {
                 Layout.fillWidth: true

@@ -10,7 +10,7 @@ import org.maui.shelf as Shelf
 
 import "views"
 import "views/library/"
-import "views/Viewer/"
+import "views/viewer/"
 
 Maui.ApplicationWindow
 {
@@ -74,7 +74,7 @@ Maui.ApplicationWindow
 
         initialItem: initModule === "viewer" ? viewerView : browserPageComponent
 
-        Viewer
+        DocumentViewer
         {
             id: viewerView
             readonly property bool active : StackView.status === StackView.Active
