@@ -32,10 +32,30 @@ Maui.Page
     }
 
     property bool enableLassoSelection : true
+    property bool spacePressed: false
 
     signal areaClicked(var mouse)
     signal areaRightClicked()
     signal areaSelected(var rect)
+
+    focus: true
+    Keys.enabled: true
+    Keys.onPressed: (event) =>
+    {
+        if (event.key === Qt.Key_Space)
+        {
+            control.spacePressed = true
+            event.accepted = true
+        }
+    }
+    Keys.onReleased: (event) =>
+    {
+        if (event.key === Qt.Key_Space)
+        {
+            control.spacePressed = false
+            event.accepted = true
+        }
+    }
 
     headBar.visible: true
     footBar.visible: true
@@ -137,6 +157,10 @@ Maui.Page
             id: pageImg
             clip: true
             asynchronous: true
+            interactive: !control.enableLassoSelection || Maui.Handy.hasTransientTouchInput
+            property bool panning: false
+            property real panLastX: 0
+            property real panLastY: 0
             width: ListView.view.width
             height: ListView.view.height
             readonly property int page: index
@@ -144,6 +168,24 @@ Maui.Page
             source: model.url
             sourceSize.width: model.width * (1000 / model.width)
             sourceSize.height: model.height * (1000 / model.height)
+
+            function clamp(value, minValue, maxValue)
+            {
+                return Math.max(minValue, Math.min(maxValue, value))
+            }
+
+            function shouldPan(mouse)
+            {
+                return zooming && (mouse.button === Qt.MiddleButton || (control.spacePressed && mouse.button === Qt.LeftButton))
+            }
+
+            function panBy(deltaX, deltaY)
+            {
+                const maxX = Math.max(0, contentWidth - width)
+                const maxY = Math.max(0, contentHeight - height)
+                contentX = clamp(contentX - deltaX, 0, maxX)
+                contentY = clamp(contentY - deltaY, 0, maxY)
+            }
 
             // Reset zoom when scrolling away so the zoomed content of a
             // previous page never bleeds into the background of another page.
@@ -172,6 +214,60 @@ Maui.Page
                 onClicked: (mouse) => mouse.accepted = false
                 onPressAndHold: (mouse) => mouse.accepted = false
                 onDoubleClicked: (mouse) => mouse.accepted = true
+            }
+
+            MouseArea
+            {
+                anchors.fill: parent
+                acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                propagateComposedEvents: true
+                preventStealing: true
+                scrollGestureEnabled: false
+                cursorShape: pageImg.panning ? Qt.ClosedHandCursor : ((control.spacePressed && pageImg.zooming) ? Qt.OpenHandCursor : Qt.ArrowCursor)
+
+                onPressed: (mouse) =>
+                {
+                    if (pageImg.shouldPan(mouse))
+                    {
+                        pageImg.panning = true
+                        pageImg.panLastX = mouse.x
+                        pageImg.panLastY = mouse.y
+                        mouse.accepted = true
+                    }
+                    else
+                    {
+                        mouse.accepted = false
+                    }
+                }
+
+                onPositionChanged: (mouse) =>
+                {
+                    if (!pageImg.panning)
+                    {
+                        mouse.accepted = false
+                        return
+                    }
+
+                    pageImg.panBy(mouse.x - pageImg.panLastX, mouse.y - pageImg.panLastY)
+                    pageImg.panLastX = mouse.x
+                    pageImg.panLastY = mouse.y
+                    mouse.accepted = true
+                }
+
+                onReleased: (mouse) =>
+                {
+                    if (!pageImg.panning)
+                    {
+                        mouse.accepted = false
+                        return
+                    }
+
+                    pageImg.panning = false
+                    mouse.accepted = true
+                }
+
+                onCanceled: pageImg.panning = false
+                onClicked: (mouse) => mouse.accepted = pageImg.shouldPan(mouse)
             }
 
             Repeater
@@ -248,7 +344,7 @@ Maui.Page
                 Loader
                 {
                     asynchronous: true
-                    active: control.enableLassoSelection && pageImg.ListView.isCurrentItem && !pageImg.zooming
+                    active: control.enableLassoSelection && pageImg.ListView.isCurrentItem
                     anchors.fill: parent
                     clip: false
 
@@ -297,6 +393,8 @@ Maui.Page
 
                         onPressed: (mouse) =>
                         {
+                            control.forceActiveFocus()
+
                             if (mouse.source === Qt.MouseEventNotSynthesized)
                             {
                                 if (control.enableLassoSelection && mouse.button === Qt.LeftButton)

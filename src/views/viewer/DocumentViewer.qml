@@ -18,6 +18,30 @@ Item
 
     property var _openPaths: ({})
 
+    function closeTab(index)
+    {
+        if (index < 0)
+            return
+
+        var closing = index
+        var updated = {}
+        var closingPath = ""
+        for (var p in _openPaths)
+        {
+            var i = _openPaths[p]
+            if (i === closing) { closingPath = p; continue }
+            updated[p] = i > closing ? i - 1 : i
+        }
+        _openPaths = updated
+        if (closingPath)
+            Shelf.ReadingProgress.removeFromRecent(closingPath)
+
+        _tabView.closeTab(closing)
+
+        if (_tabView.count === 0 && viewerView.active)
+            toggleViewer()
+    }
+
     Loader
     {
         anchors.fill: parent
@@ -33,28 +57,21 @@ Item
         }
     }
 
+    Shortcut
+    {
+        sequence: "Ctrl+W"
+        context: Qt.WindowShortcut
+        enabled: viewerView.active && _tabView.count > 0
+        onActivated: control.closeTab(_tabView.currentIndex)
+    }
+
     Maui.TabView
     {
         id: _tabView
         anchors.fill: parent
 
         Maui.Controls.showCSD: control.Maui.Controls.showCSD
-        onCloseTabClicked:
-        {
-            var closing = index
-            var updated = {}
-            var closingPath = ""
-            for (var p in _openPaths)
-            {
-                var i = _openPaths[p]
-                if (i === closing) { closingPath = p; continue }
-                updated[p] = i > closing ? i - 1 : i
-            }
-            _openPaths = updated
-            if (closingPath)
-                Shelf.ReadingProgress.removeFromRecent(closingPath)
-            _tabView.closeTab(closing)
-        }
+        onCloseTabClicked: (index) => control.closeTab(index)
         tabBar.visible: true
         tabBar.showNewTabButton: false
         tabBarMargins: Maui.Style.defaultPadding
