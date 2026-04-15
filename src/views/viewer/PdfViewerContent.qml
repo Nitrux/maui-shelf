@@ -230,8 +230,11 @@ Maui.Page
                     if (pageImg.shouldPan(mouse))
                     {
                         pageImg.panning = true
-                        pageImg.panLastX = mouse.x
-                        pageImg.panLastY = mouse.y
+                        // Use global coordinates so the delta is immune to the
+                        // outer ListView moving this delegate on screen.
+                        const g = mapToGlobal(mouse.x, mouse.y)
+                        pageImg.panLastX = g.x
+                        pageImg.panLastY = g.y
                         mouse.accepted = true
                     }
                     else
@@ -248,9 +251,10 @@ Maui.Page
                         return
                     }
 
-                    pageImg.panBy(mouse.x - pageImg.panLastX, mouse.y - pageImg.panLastY)
-                    pageImg.panLastX = mouse.x
-                    pageImg.panLastY = mouse.y
+                    const g = mapToGlobal(mouse.x, mouse.y)
+                    pageImg.panBy(g.x - pageImg.panLastX, g.y - pageImg.panLastY)
+                    pageImg.panLastX = g.x
+                    pageImg.panLastY = g.y
                     mouse.accepted = true
                 }
 
@@ -394,6 +398,15 @@ Maui.Page
                         onPressed: (mouse) =>
                         {
                             control.forceActiveFocus()
+
+                            // Don't start a lasso selection if the pan MA already
+                            // claimed this press – pressed events always propagate
+                            // regardless of propagateComposedEvents, so we guard here.
+                            if (pageImg.panning)
+                            {
+                                mouse.accepted = false
+                                return
+                            }
 
                             if (mouse.source === Qt.MouseEventNotSynthesized)
                             {
