@@ -67,52 +67,68 @@ Maui.PageLayout
                 onClicked: Shelf.ReadingProgress.clearRecent()
             }
 
-            ListView
+            Flickable
             {
                 id: _recentList
                 anchors.top: _recentLabel.bottom
                 anchors.topMargin: Maui.Style.space.medium
                 anchors.left: parent.left
                 anchors.right: parent.right
-                implicitHeight: 160
+                implicitHeight: 172
                 clip: true
-                orientation: ListView.Horizontal
-                spacing: Maui.Style.space.medium
-                leftMargin: Maui.Style.space.medium
-                rightMargin: Maui.Style.space.medium
+                contentWidth: _recentRow.width + (horizontalPadding * 2)
+                contentHeight: height
+                boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.HorizontalFlick
+                leftMargin: horizontalPadding
+                rightMargin: horizontalPadding
 
-                model: Shelf.ReadingProgress.recentFiles
+                readonly property int delegateWidth: 148
+                readonly property int delegateSpacing: Maui.Style.space.medium
+                readonly property int horizontalPadding: Maui.Style.space.medium
 
-                delegate: Maui.GridBrowserDelegate
+                ScrollBar.horizontal: ScrollBar
                 {
-                    height: _recentList.height
-                    width: 148
-
-                    imageSource: viewerSettings.showThumbnails ? (modelData.preview || modelData.thumbnail || "") : ""
-                    iconSource: modelData.icon || "application-pdf"
-                    iconSizeHint: Maui.Style.iconSizes.big
-                    imageHeight: 80
-                    imageWidth: 148
-
-                    label1.text: modelData.label || ""
-                    label2.text: modelData.page > 0
-                                 ? (modelData.totalPages > 0
-                                    ? i18n("p. %1 / %2", modelData.page + 1, modelData.totalPages)
-                                    : i18n("p. %1", modelData.page + 1))
-                                 : ""
-                    template.fillMode: Image.PreserveAspectFit
-                    template.labelSizeHint: 28
-
-                    onClicked: root.openFileRequested(modelData.url || modelData.path)
+                    policy: ScrollBar.AsNeeded
+                    visible: _recentList.contentWidth > _recentList.width
                 }
-            }
 
-            Connections
-            {
-                target: Shelf.ReadingProgress
-                function onRecentFilesChanged()
+                Row
                 {
-                    _recentList.model = Shelf.ReadingProgress.recentFiles
+                    id: _recentRow
+                    x: _recentList.horizontalPadding
+                    height: _recentList.height - (_recentList.ScrollBar.horizontal && _recentList.ScrollBar.horizontal.visible ? _recentList.ScrollBar.horizontal.height : 0)
+                    spacing: _recentList.delegateSpacing
+
+                    Repeater
+                    {
+                        model: Shelf.ReadingProgress.recentFiles
+
+                        delegate: Maui.GridBrowserDelegate
+                        {
+                            required property var modelData
+
+                            height: _recentRow.height
+                            width: _recentList.delegateWidth
+
+                            imageSource: viewerSettings.showThumbnails ? (modelData.preview || modelData.thumbnail || "") : ""
+                            iconSource: modelData.icon || "application-pdf"
+                            iconSizeHint: Maui.Style.iconSizes.big
+                            imageHeight: 80
+                            imageWidth: _recentList.delegateWidth
+
+                            label1.text: modelData.label || ""
+                            label2.text: modelData.page > 0
+                                         ? (modelData.totalPages > 0
+                                            ? i18n("p. %1 / %2", modelData.page + 1, modelData.totalPages)
+                                            : i18n("p. %1", modelData.page + 1))
+                                         : ""
+                            template.fillMode: Image.PreserveAspectFit
+                            template.labelSizeHint: 28
+
+                            onClicked: root.openFileRequested(modelData.url || modelData.path)
+                        }
+                    }
                 }
             }
         }
@@ -252,32 +268,44 @@ Maui.PageLayout
     ]
 
     readonly property bool hasRecentFiles: Shelf.ReadingProgress.recentFiles.length > 0
+    readonly property int recentSectionPadding: Maui.Style.space.medium
     readonly property int recentSectionHeight: hasRecentFiles
-                                              ? Math.min(220, Math.max(140, Math.round(height * 0.24)))
+                                              ? Math.min(440, Math.max(156, Math.ceil((_continueLoader.item ? _continueLoader.item.implicitHeight : 220) + (recentSectionPadding * 2))))
                                               : 0
 
-    Maui.SplitView
+    ColumnLayout
     {
         anchors.fill: parent
-        orientation: Qt.Vertical
-        background: null
+        spacing: Maui.Style.space.medium
 
-        Maui.SplitViewItem
+        Item
         {
-            padding: 0
-            background: null
-            clip: true
-            autoClose: false
             visible: root.hasRecentFiles
-            SplitView.fillWidth: true
-            SplitView.preferredHeight: root.recentSectionHeight
-            SplitView.minimumHeight: visible ? 120 : 0
-            SplitView.maximumHeight: visible ? 400 : 0
+            Layout.fillWidth: true
+            Layout.preferredHeight: visible ? root.recentSectionHeight : 0
+            Layout.minimumHeight: 0
+            Layout.maximumHeight: 440
+            clip: true
+
+            Rectangle
+            {
+                anchors.fill: parent
+                anchors.leftMargin: Maui.Style.space.medium
+                anchors.rightMargin: Maui.Style.space.medium
+                anchors.topMargin: Maui.Style.space.small
+                anchors.bottomMargin: Maui.Style.space.small
+                radius: Maui.Style.radiusV
+                color: Maui.Theme.backgroundColor
+                opacity: 0.62
+                border.width: 1
+                border.color: Qt.rgba(1, 1, 1, 0.08)
+            }
 
             Loader
             {
                 id: _continueLoader
                 anchors.fill: parent
+                anchors.margins: root.recentSectionPadding
                 active: root.hasRecentFiles
                 visible: active
                 asynchronous: true
@@ -294,14 +322,11 @@ Maui.PageLayout
             }
         }
 
-        Maui.SplitViewItem
+        Item
         {
-            padding: 0
-            background: null
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             clip: true
-            autoClose: false
-            SplitView.fillWidth: true
-            SplitView.fillHeight: true
 
             Maui.AltBrowser
             {
@@ -309,207 +334,206 @@ Maui.PageLayout
                 anchors.fill: parent
                 clip: true
                 background: null
-            headBar.visible: false
-            viewType: viewerSettings.viewType
-        enableLassoSelection: true
-        gridView.itemSize: Math.min(180, Math.floor(gridView.availableWidth / 3))
-        gridView.itemHeight: 220
-
-        Connections
-        {
-            target: _browser.currentView
-            function onItemsSelected(indexes)
-            {
-                for (var i in indexes)
-                {
-                    const item = _browser.model.get(indexes[i])
-                    _selectionbar.append(item.path, item)
-                }
-            }
-        }
-
-        holder.visible: _browser.count === 0
-        holder.title: i18n("Nothing here!")
-        holder.body: i18n("Add sources to manage your documents.")
-        holder.emoji: "qrc:/assets/document-new.svg"
-        model: Maui.BaseModel
-        {
-            id: _libraryModel
-            sort: "modified"
-            sortOrder: Qt.DescendingOrder
-            filterRole: "label"
-            recursiveFilteringEnabled: true
-            sortCaseSensitivity: Qt.CaseInsensitive
-            filterCaseSensitivity: Qt.CaseInsensitive
-            list: Shelf.LibraryList
-            {
-                id: _libraryList
-                autoScan: viewerSettings.autoScan
-            }
-        }
-
-        gridDelegate: Item
-        {
-            height: GridView.view.cellHeight
-            width: GridView.view.cellWidth
-
-            Maui.GridBrowserDelegate
-            {
-                id: _gridTemplate
-                anchors.fill: parent
-                anchors.margins: !windowRoot.isWide ? Maui.Style.space.tiny : Maui.Style.space.big
-                imageHeight: _browser.gridView.itemSize
-                imageWidth: _browser.gridView.itemSize
-                isCurrentItem: parent.GridView.isCurrentItem || checked
-                label1.text: model.label
-                label2.text: Maui.Handy.formatSize(model.size)
-                imageSource: viewerSettings.showThumbnails ? (model.thumbnail || model.preview || "") : ""
-                iconSource: model.icon
-                iconSizeHint: Maui.Style.iconSizes.huge
-                template.labelSizeHint: 32
-                template.fillMode: Image.PreserveAspectFit
-                checkable: root.selectionMode
-                checked: _selectionbar.contains(model.path)
-                onToggled: _selectionbar.append(model.path, _browser.model.get(index))
+                headBar.visible: false
+                viewType: viewerSettings.viewType
+                enableLassoSelection: true
+                gridView.itemSize: Math.min(180, Math.floor(gridView.availableWidth / 3))
+                gridView.itemHeight: 220
 
                 Connections
                 {
-                    target: _selectionbar
-                    function onUriRemoved(uri)
+                    target: _browser.currentView
+                    function onItemsSelected(indexes)
                     {
-                        if (uri === model.path)
-                            _gridTemplate.checked = false
-                    }
-
-                    function onUriAdded(uri)
-                    {
-                        if (uri === model.path)
-                            _gridTemplate.checked = true
-                    }
-
-                    function onCleared()
-                    {
-                        _gridTemplate.checked = false
+                        for (var i in indexes)
+                        {
+                            const item = _browser.model.get(indexes[i])
+                            _selectionbar.append(item.path, item)
+                        }
                     }
                 }
 
-                onClicked: (mouse) =>
+                holder.visible: _browser.count === 0
+                holder.title: i18n("Nothing here!")
+                holder.body: i18n("Add sources to manage your documents.")
+                holder.emoji: "qrc:/assets/document-new.svg"
+                model: Maui.BaseModel
                 {
-                    _browser.currentIndex = index
-                    const item = _browser.model.get(_browser.currentIndex)
-
-                    if (root.selectionMode || (mouse.button === Qt.LeftButton && (mouse.modifiers & Qt.ControlModifier)))
+                    id: _libraryModel
+                    sort: "modified"
+                    sortOrder: Qt.DescendingOrder
+                    filterRole: "label"
+                    recursiveFilteringEnabled: true
+                    sortCaseSensitivity: Qt.CaseInsensitive
+                    filterCaseSensitivity: Qt.CaseInsensitive
+                    list: Shelf.LibraryList
                     {
-                        _selectionbar.append(item.path, item)
-                    }
-                    else if (Maui.Handy.singleClick)
-                    {
-                        root.openFileRequested(item.url)
+                        id: _libraryList
+                        autoScan: viewerSettings.autoScan
                     }
                 }
 
-                onDoubleClicked:
+                gridDelegate: Item
                 {
-                    _browser.currentIndex = index
-                    if (!Maui.Handy.singleClick && !root.selectionMode)
+                    height: GridView.view.cellHeight
+                    width: GridView.view.cellWidth
+
+                    Maui.GridBrowserDelegate
                     {
+                        id: _gridTemplate
+                        anchors.fill: parent
+                        anchors.margins: !windowRoot.isWide ? Maui.Style.space.tiny : Maui.Style.space.big
+                        imageHeight: _browser.gridView.itemSize
+                        imageWidth: _browser.gridView.itemSize
+                        isCurrentItem: parent.GridView.isCurrentItem || checked
+                        label1.text: model.label
+                        label2.text: Maui.Handy.formatSize(model.size)
+                        imageSource: viewerSettings.showThumbnails ? (model.thumbnail || model.preview || "") : ""
+                        iconSource: model.icon
+                        iconSizeHint: Maui.Style.iconSizes.huge
+                        template.labelSizeHint: 32
+                        template.fillMode: Image.PreserveAspectFit
+                        checkable: root.selectionMode
+                        checked: _selectionbar.contains(model.path)
+                        onToggled: _selectionbar.append(model.path, _browser.model.get(index))
+
+                        Connections
+                        {
+                            target: _selectionbar
+                            function onUriRemoved(uri)
+                            {
+                                if (uri === model.path)
+                                    _gridTemplate.checked = false
+                            }
+
+                            function onUriAdded(uri)
+                            {
+                                if (uri === model.path)
+                                    _gridTemplate.checked = true
+                            }
+
+                            function onCleared()
+                            {
+                                _gridTemplate.checked = false
+                            }
+                        }
+
+                        onClicked: (mouse) =>
+                        {
+                            _browser.currentIndex = index
+                            const item = _browser.model.get(_browser.currentIndex)
+
+                            if (root.selectionMode || (mouse.button === Qt.LeftButton && (mouse.modifiers & Qt.ControlModifier)))
+                            {
+                                _selectionbar.append(item.path, item)
+                            }
+                            else if (Maui.Handy.singleClick)
+                            {
+                                root.openFileRequested(item.url)
+                            }
+                        }
+
+                        onDoubleClicked:
+                        {
+                            _browser.currentIndex = index
+                            if (!Maui.Handy.singleClick && !root.selectionMode)
+                            {
+                                const item = _browser.model.get(_browser.currentIndex)
+                                root.openFileRequested(item.url)
+                            }
+                        }
+
+                        onPressAndHold:
+                        {
+                            _browser.currentIndex = index
+                            _menu.show()
+                        }
+
+                        onRightClicked:
+                        {
+                            _browser.currentIndex = index
+                            _menu.show()
+                        }
+                    }
+                }
+
+                listDelegate: Maui.ListBrowserDelegate
+                {
+                    id: _listDelegate
+                    isCurrentItem: ListView.isCurrentItem || checked
+                    height: Math.floor(Maui.Style.rowHeight * 1.6)
+                    width: ListView.view.width
+                    label1.text: model.label
+                    label2.text: Maui.Handy.formatSize(model.size)
+                    label3.text: Qt.formatDateTime(new Date(model.modified), "d MMM yyyy")
+                    imageSource: viewerSettings.showThumbnails ? (model.thumbnail || model.preview || "") : ""
+                    iconSource: model.icon
+                    iconSizeHint: Maui.Style.iconSizes.medium
+                    checkable: root.selectionMode
+                    checked: _selectionbar.contains(model.path)
+                    onToggled: _selectionbar.append(model.path, _browser.model.get(index))
+
+                    Connections
+                    {
+                        target: _selectionbar
+                        function onUriRemoved(uri)
+                        {
+                            if (uri === model.path)
+                                _listDelegate.checked = false
+                        }
+
+                        function onUriAdded(uri)
+                        {
+                            if (uri === model.path)
+                                _listDelegate.checked = true
+                        }
+
+                        function onCleared()
+                        {
+                            _listDelegate.checked = false
+                        }
+                    }
+
+                    onClicked: (mouse) =>
+                    {
+                        _browser.currentIndex = index
                         const item = _browser.model.get(_browser.currentIndex)
-                        root.openFileRequested(item.url)
+
+                        if (root.selectionMode || (mouse.button === Qt.LeftButton && (mouse.modifiers & Qt.ControlModifier)))
+                        {
+                            _selectionbar.append(item.path, item)
+                        }
+                        else if (Maui.Handy.singleClick)
+                        {
+                            root.openFileRequested(item.url)
+                        }
+                    }
+
+                    onDoubleClicked:
+                    {
+                        _browser.currentIndex = index
+                        if (!Maui.Handy.singleClick && !root.selectionMode)
+                        {
+                            const item = _browser.model.get(_browser.currentIndex)
+                            root.openFileRequested(item.url)
+                        }
+                    }
+
+                    onPressAndHold:
+                    {
+                        _browser.currentIndex = index
+                        _menu.show()
+                    }
+
+                    onRightClicked:
+                    {
+                        _browser.currentIndex = index
+                        _menu.show()
                     }
                 }
-
-                onPressAndHold:
-                {
-                    _browser.currentIndex = index
-                    _menu.show()
-                }
-
-                onRightClicked:
-                {
-                    _browser.currentIndex = index
-                    _menu.show()
-                }
-            }
-        }
-
-        listDelegate: Maui.ListBrowserDelegate
-        {
-            id: _listDelegate
-            isCurrentItem: ListView.isCurrentItem || checked
-            height: Math.floor(Maui.Style.rowHeight * 1.6)
-            width: ListView.view.width
-            label1.text: model.label
-            label2.text: Maui.Handy.formatSize(model.size)
-            label3.text: Qt.formatDateTime(new Date(model.modified), "d MMM yyyy")
-            imageSource: viewerSettings.showThumbnails ? (model.thumbnail || model.preview || "") : ""
-            iconSource: model.icon
-            iconSizeHint: Maui.Style.iconSizes.medium
-            checkable: root.selectionMode
-            checked: _selectionbar.contains(model.path)
-            onToggled: _selectionbar.append(model.path, _browser.model.get(index))
-
-            Connections
-            {
-                target: _selectionbar
-                function onUriRemoved(uri)
-                {
-                    if (uri === model.path)
-                        _listDelegate.checked = false
-                }
-
-                function onUriAdded(uri)
-                {
-                    if (uri === model.path)
-                        _listDelegate.checked = true
-                }
-
-                function onCleared()
-                {
-                    _listDelegate.checked = false
-                }
-            }
-
-            onClicked: (mouse) =>
-            {
-                _browser.currentIndex = index
-                const item = _browser.model.get(_browser.currentIndex)
-
-                if (root.selectionMode || (mouse.button === Qt.LeftButton && (mouse.modifiers & Qt.ControlModifier)))
-                {
-                    _selectionbar.append(item.path, item)
-                }
-                else if (Maui.Handy.singleClick)
-                {
-                    root.openFileRequested(item.url)
-                }
-            }
-
-            onDoubleClicked:
-            {
-                _browser.currentIndex = index
-                if (!Maui.Handy.singleClick && !root.selectionMode)
-                {
-                    const item = _browser.model.get(_browser.currentIndex)
-                    root.openFileRequested(item.url)
-                }
-            }
-
-            onPressAndHold:
-            {
-                _browser.currentIndex = index
-                _menu.show()
-            }
-
-            onRightClicked:
-            {
-                _browser.currentIndex = index
-                _menu.show()
             }
         }
     }
-        }
-
-    } // end SplitView
 
     footer: Maui.SelectionBar
     {
