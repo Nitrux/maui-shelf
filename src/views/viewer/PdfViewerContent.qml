@@ -203,11 +203,30 @@ Maui.Page
 
             readonly property var links: model.links
 
+            // When the built-in double-click zoom (via PinchArea's inner MouseArea)
+            // fires on the dark margins, sync pageScale to match so the slider
+            // reflects the actual zoom level.
+            onDoubleClicked: (mouse) => { _syncTimer.restart() }
+
+            Timer
+            {
+                id: _syncTimer
+                // zoomAnim uses Maui.Style.units.longDuration (~250 ms); wait longer
+                interval: 400
+                onTriggered:
+                {
+                    if (!pageImg.ListView.isCurrentItem || pageImg.width <= 0) return
+                    const newScale = pageImg.contentWidth / pageImg.width
+                    if (Math.abs(newScale - control.pageScale) > 0.05)
+                        control.pageScale = newScale
+                }
+            }
+
             MouseArea
             {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton
-                propagateComposedEvents: true
+                propagateComposedEvents: false
                 preventStealing: false
                 onPressed: (mouse) => mouse.accepted = false
                 onReleased: (mouse) => mouse.accepted = false
