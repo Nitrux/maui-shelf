@@ -135,6 +135,7 @@ Maui.Page
         delegate: Maui.ImageViewer
         {
             id: pageImg
+            clip: true
             asynchronous: true
             width: ListView.view.width
             height: ListView.view.height
@@ -144,7 +145,34 @@ Maui.Page
             sourceSize.width: model.width * (1000 / model.width)
             sourceSize.height: model.height * (1000 / model.height)
 
+            // Reset zoom when scrolling away so the zoomed content of a
+            // previous page never bleeds into the background of another page.
+            readonly property bool isCurrentPage: ListView.isCurrentItem
+            onIsCurrentPageChanged:
+            {
+                if (!isCurrentPage)
+                {
+                    contentWidth  = width
+                    contentHeight = height
+                    contentX = 0
+                    contentY = 0
+                }
+            }
+
             readonly property var links: model.links
+
+            MouseArea
+            {
+                anchors.fill: parent
+                acceptedButtons: Qt.LeftButton
+                propagateComposedEvents: true
+                preventStealing: false
+                onPressed: (mouse) => mouse.accepted = false
+                onReleased: (mouse) => mouse.accepted = false
+                onClicked: (mouse) => mouse.accepted = false
+                onPressAndHold: (mouse) => mouse.accepted = false
+                onDoubleClicked: (mouse) => mouse.accepted = true
+            }
 
             Repeater
             {
