@@ -40,7 +40,6 @@ target_link_libraries(${PROJECT_NAME}
     MauiKit4
     MauiKit4::FileBrowsing
     MauiKit4::Documents
-    MauiKit4::TextEditor
     Qt6::Core
     Qt6::Gui
     Qt6::Quick

@@ -27,30 +27,26 @@ static QStringList libraryFiltersForSource(const QString &source)
     };
 
     QStringList filters;
+    const QStringList pdfTypes = mimedb.mimeTypeForName("application/pdf").suffixes();
+    QStringList comicTypes = mimedb.mimeTypeForName("application/vnd.comicbook+zip").suffixes();
+    comicTypes << mimedb.mimeTypeForName("application/vnd.comicbook+rar").suffixes();
 
     if (source == "comics:///")
     {
-        QStringList types = mimedb.mimeTypeForName("application/vnd.comicbook+zip").suffixes();
-        types << mimedb.mimeTypeForName("application/vnd.comicbook+rar").suffixes();
-        appendSuffixFilters(filters, types);
+        appendSuffixFilters(filters, comicTypes);
     }
     else if (source == "documents:///")
     {
-        appendSuffixFilters(filters, mimedb.mimeTypeForName("application/pdf").suffixes());
+        appendSuffixFilters(filters, pdfTypes);
     }
-    else if (source == "text:///")
+    else if (source == "epubs:///")
     {
-        filters = FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::TEXT];
+        filters << "*.epub";
     }
     else
     {
-        filters = FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::DOCUMENT];
-        filters << FMStatic::FILTER_LIST[FMStatic::FILTER_TYPE::TEXT];
-
-        QStringList comicTypes = mimedb.mimeTypeForName("application/vnd.comicbook+zip").suffixes();
-        comicTypes << mimedb.mimeTypeForName("application/vnd.comicbook+rar").suffixes();
+        appendSuffixFilters(filters, pdfTypes);
         appendSuffixFilters(filters, comicTypes);
-
         filters << "*.epub";
         filters.removeDuplicates();
     }
@@ -72,10 +68,6 @@ static FMH::MODEL fileData(const QUrl &url)
     else if (Library::instance()->isPDF(url.toString()))
     {
         thumbnail = QStringLiteral("image://pdfpreview/") + url.toString();
-    }
-    else
-    {
-        thumbnail = QStringLiteral("image://preview/") + url.toString();
     }
 
     if (!thumbnail.isEmpty())
@@ -129,7 +121,7 @@ QStringList LibraryModel::resolvedSources(const QStringList &sources) const
     if (sources.count() == 1)
     {
         const QString source = sources.first();
-        if (source == "comics:///" || source == "documents:///" || source == "text:///" || source == "collection:///")
+        if (source == "comics:///" || source == "documents:///" || source == "epubs:///" || source == "collection:///")
         {
             paths = Library::instance()->sources();
         }

@@ -20,11 +20,9 @@ public Q_SLOTS:
     void addSources(const QStringList &urls);
 
     bool isPDF(const QString &url);
-    bool isPlainText(const QString &url);
     bool isEpub(const QString &url);
     bool isCommicBook(const QString &url);
     bool isSupported(const QString &url);
-    QString readTextFile(const QString &url) const;
 
 private:
     static Library *m_instance;

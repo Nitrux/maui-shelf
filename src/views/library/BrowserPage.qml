@@ -231,13 +231,13 @@ Maui.PageLayout
             id: _typeFilter
             implicitWidth: 120
 
-            model: [i18n("All"), i18n("PDFs"), i18n("Comics"), i18n("Text")]
+            model: [i18n("All"), i18n("PDFs"), i18n("EPUBs"), i18n("Comics")]
 
             readonly property var _sources: [
                 ["collection:///"],
                 ["documents:///"],
-                ["comics:///"],
-                ["text:///"]
+                ["epubs:///"],
+                ["comics:///"]
             ]
 
             onActivated: (idx) => _libraryList.sources = _sources[idx]

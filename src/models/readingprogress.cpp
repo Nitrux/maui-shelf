@@ -104,8 +104,6 @@ QVariantList ReadingProgress::recentFiles() const
             preview = QStringLiteral("image://comiccover/") + qurl.toLocalFile();
         else if (Library::instance()->isPDF(url))
             preview = QStringLiteral("image://pdfpreview/") + qurl.toString();
-        else
-            preview = QStringLiteral("image://preview/") + qurl.toString();
 
         if (!preview.isEmpty())
             info.insert(QStringLiteral("preview"), preview);

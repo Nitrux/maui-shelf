@@ -5,7 +5,6 @@ import QtQuick.Window
 import org.mauikit.controls as Maui
 import org.mauikit.filebrowsing as FB
 import org.mauikit.documents as Docs
-import org.mauikit.texteditor as TE
 
 import org.maui.shelf as Shelf
 
@@ -171,17 +170,6 @@ Item
 
     Component
     {
-        id: _txtComponent
-
-        TE.TextViewer
-        {
-            Maui.Controls.title: title
-            Maui.Controls.toolTipText: path
-        }
-    }
-
-    Component
-    {
         id: _epubComponent
 
         EpubViewer
@@ -223,8 +211,6 @@ Item
 
         if (Shelf.Library.isPDF(path))
             _tabView.addTab(_pdfComponent, {'path': path})
-        else if (Shelf.Library.isPlainText(path))
-            _tabView.addTab(_txtComponent, {'path': path})
         else if (Shelf.Library.isEpub(path))
             _tabView.addTab(_epubComponent, {'path': path})
         else if (Shelf.Library.isCommicBook(path))

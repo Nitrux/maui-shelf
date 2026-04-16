@@ -32,7 +32,7 @@ find_package(Qt6 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS Core Gui S
 find_package(KF6CoreAddons ${REQUIRED_KF_VERSION} REQUIRED)
 find_package(KF6I18n ${REQUIRED_KF_VERSION} REQUIRED)
 
-find_package(MauiKit4 REQUIRED COMPONENTS FileBrowsing Documents TextEditor)
+find_package(MauiKit4 REQUIRED COMPONENTS FileBrowsing Documents)
 
 if(${ECM_SOURCE_UNDER_VERSION_CONTROL})
     execute_process(
