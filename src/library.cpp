@@ -1,6 +1,7 @@
 #include "library.h"
 
 #include <QFile>
+#include <QFileInfo>
 #include <QMimeDatabase>
 #include <QSettings>
 #include <QTextStream>
