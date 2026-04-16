@@ -537,11 +537,13 @@ Maui.PageLayout
         }
     }
 
-    footer: Maui.SelectionBar
+    Maui.SelectionBar
     {
-        id: _selectionbar
         anchors.horizontalCenter: parent.horizontalCenter
-        width: Math.min(parent.width - (Maui.Style.space.medium * 2), implicitWidth)
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: Maui.Style.space.medium
+        id: _selectionbar
+        width: parent ? Math.min(parent.width - (Maui.Style.space.medium * 2), implicitWidth) : implicitWidth
         maxListHeight: root.height - Maui.Style.space.medium
 
         listDelegate: Maui.ListBrowserDelegate
@@ -569,7 +571,6 @@ Maui.PageLayout
         {
             text: ""
             icon.name: "edit-delete"
-            Maui.Theme.textColor: Maui.Theme.negativeTextColor
             onTriggered:
             {
                 removeFiles(_selectionbar.uris)

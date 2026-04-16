@@ -4,6 +4,8 @@ import QtQuick.Window
 
 import org.mauikit.controls as Maui
 import org.mauikit.filebrowsing as FB
+import org.mauikit.documents as Docs
+import org.mauikit.texteditor as TE
 
 import org.maui.shelf as Shelf
 
@@ -89,9 +91,9 @@ Item
 
                 onClicked: _tabView.setCurrentIndex(_tabButton.mindex)
 
-                onRightClicked: {} // suppress useless platform/accessibility menu
+                onRightClicked: (_mouse) => {} // suppress useless platform/accessibility menu
 
-                onCloseClicked: _tabView.closeTabClicked(_tabButton.mindex)
+                onCloseClicked: () => control.closeTab(_tabButton.mindex)
             }
         }
 
@@ -132,9 +134,13 @@ Item
                         text: i18n("Browse Horizontally")
 
                         checkable: true
-                        checked:  currentViewer.orientation === ListView.Horizontal
+                        enabled: !!currentViewer && currentViewer.hasOwnProperty("orientation")
+                        checked: enabled && currentViewer.orientation === ListView.Horizontal
                         onClicked:
                         {
+                            if (!enabled)
+                                return
+
                             currentViewer.orientation = currentViewer.orientation === ListView.Horizontal ? ListView.Vertical : ListView.Horizontal
                         }
                     }
@@ -167,7 +173,7 @@ Item
     {
         id: _txtComponent
 
-        TextViewer
+        TE.TextViewer
         {
             Maui.Controls.title: title
             Maui.Controls.toolTipText: path
@@ -189,12 +195,10 @@ Item
     {
         id: _CBComponent
 
-        ComicViewer
+        Docs.ComicViewer
         {
             Maui.Controls.title: title
             Maui.Controls.toolTipText: path
-
-            onGoBackTriggered: _stackView.pop()
         }
     }
 
@@ -228,6 +232,7 @@ Item
         else
             return
 
+        Shelf.ReadingProgress.markOpened(path)
         _openPaths[path] = _tabView.currentIndex
     }
 }

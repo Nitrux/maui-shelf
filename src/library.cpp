@@ -1,6 +1,7 @@
 #include "library.h"
 
 #include <QFile>
+#include <QMimeDatabase>
 #include <QSettings>
 #include <QTextStream>
 
@@ -96,7 +97,36 @@ bool Library::isPDF(const QString &url)
 
 bool Library::isPlainText(const QString &url)
 {
-    return FMStatic::checkFileType(FMStatic::FILTER_TYPE::TEXT, FMStatic::getMime(QUrl::fromUserInput(url)));
+    const QUrl fileUrl = QUrl::fromUserInput(url);
+    const QString mime = FMStatic::getMime(fileUrl);
+    if (FMStatic::checkFileType(FMStatic::FILTER_TYPE::TEXT, mime))
+        return true;
+
+    static const QSet<QString> extraTextMimeTypes = {
+        QStringLiteral("application/json"),
+        QStringLiteral("application/ld+json"),
+        QStringLiteral("application/xml"),
+        QStringLiteral("application/javascript"),
+        QStringLiteral("application/ecmascript"),
+        QStringLiteral("application/x-yaml"),
+        QStringLiteral("application/yaml"),
+        QStringLiteral("application/toml"),
+        QStringLiteral("application/x-shellscript")
+    };
+
+    if (extraTextMimeTypes.contains(mime))
+        return true;
+
+    const QString suffix = QFileInfo(fileUrl.toLocalFile().isEmpty() ? fileUrl.path() : fileUrl.toLocalFile()).suffix().toLower();
+    static const QSet<QString> extraTextSuffixes = {
+        QStringLiteral("xml"), QStringLiteral("xsd"), QStringLiteral("xbl"), QStringLiteral("rng"),
+        QStringLiteral("json"), QStringLiteral("js"), QStringLiteral("jsm"), QStringLiteral("mjs"),
+        QStringLiteral("yaml"), QStringLiteral("yml"), QStringLiteral("toml"), QStringLiteral("notifyrc"),
+        QStringLiteral("service"), QStringLiteral("sh"), QStringLiteral("pl"), QStringLiteral("pm"),
+        QStringLiteral("pod"), QStringLiteral("t"), QStringLiteral("po")
+    };
+
+    return extraTextSuffixes.contains(suffix);
 }
 
 bool Library::isEpub(const QString &url)

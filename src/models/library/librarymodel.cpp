@@ -71,6 +71,10 @@ static FMH::MODEL fileData(const QUrl &url)
     }
     else if (Library::instance()->isPDF(url.toString()))
     {
+        thumbnail = QStringLiteral("image://pdfpreview/") + url.toString();
+    }
+    else
+    {
         thumbnail = QStringLiteral("image://preview/") + url.toString();
     }
 

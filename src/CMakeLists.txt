@@ -15,22 +15,22 @@ set(shelf_ASSETS
     lib_assets.qrc)
 
 qt_add_executable(${PROJECT_NAME}
+    MANUAL_FINALIZATION
     ${shelf_SRCS}
     ${shelf_ASSETS})
 
 qt_add_qml_module(${PROJECT_NAME} URI app.maui.shelf
     NO_PLUGIN
+    NO_IMPORT_SCAN
+    RESOURCE_PREFIX /
     QML_FILES
     main.qml
     views/library/BrowserPage.qml
     views/library/LibraryMenu.qml
     views/viewer/DocumentViewer.qml
-    views/viewer/PdfViewerContent.qml
     views/viewer/PdfViewer.qml
-    views/viewer/TextViewer.qml
     views/viewer/EpubViewer.qml
-    views/SettingsDialog.qml
-    views/viewer/ComicViewer.qml)
+    views/SettingsDialog.qml)
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
@@ -40,6 +40,7 @@ target_link_libraries(${PROJECT_NAME}
     MauiKit4
     MauiKit4::FileBrowsing
     MauiKit4::Documents
+    MauiKit4::TextEditor
     Qt6::Core
     Qt6::Gui
     Qt6::Quick

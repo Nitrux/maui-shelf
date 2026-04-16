@@ -25,17 +25,6 @@ Item
         return lastDot > 0 ? fname.substring(0, lastDot) : fname
     }
 
-    Poppler.Document
-    {
-        id: _tocDoc
-        path: control.path
-
-        onPagesLoaded:
-        {
-            _restoreTimer.start()
-        }
-    }
-
     Timer
     {
         id: _restoreTimer
@@ -44,7 +33,7 @@ Item
         {
             const savedPage = Shelf.ReadingProgress.getProgress(control.path)
             if (savedPage > 0)
-                _pdfViewer.__goTo({ page: savedPage, top: 0 })
+                _pdfViewer.goTo({ page: savedPage, top: 0 })
         }
     }
 
@@ -56,7 +45,7 @@ Item
         Maui.Page
         {
             id: _tocPanel
-            visible: _tocToggle.checked && _tocDoc.tocModel && _tocDoc.tocModel.count > 0
+            visible: _tocToggle.checked && _pdfViewer.tocModel && _pdfViewer.tocModel.count > 0
             Layout.preferredWidth: 260
             Layout.fillHeight: true
             Layout.minimumWidth: 180
@@ -76,7 +65,7 @@ Item
             Maui.ListBrowser
             {
                 anchors.fill: parent
-                model: _tocDoc.tocModel
+                model: _pdfViewer.tocModel
 
                 delegate: Maui.ListDelegate
                 {
@@ -90,7 +79,7 @@ Item
                     onClicked:
                     {
                         if (model.page !== undefined && model.page >= 0)
-                            _pdfViewer.__goTo({ page: model.page, top: 0 })
+                            _pdfViewer.goTo({ page: model.page, top: 0 })
                     }
                 }
             }
@@ -104,14 +93,53 @@ Item
             color: Maui.Theme.separatorColor
         }
 
-        PdfViewerContent
+        Poppler.PDFViewer
         {
             id: _pdfViewer
             Layout.fillWidth: true
             Layout.fillHeight: true
 
             path: control.path
+            showSearchControls: false
             headBar.visible: false
+
+            Connections
+            {
+                target: _pdfViewer.document
+                function onPagesLoaded()
+                {
+                    _restoreTimer.start()
+                }
+            }
+
+            footerColumn: Maui.ToolBar
+            {
+                visible: _pdfViewer.searchVisible
+                width: parent.width
+
+                middleContent: Maui.SearchField
+                {
+                    id: _searchField
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: 500
+                    Layout.alignment: Qt.AlignHCenter
+                    text: _pdfViewer.currentSearchTerm
+
+                    onAccepted: _pdfViewer.search(text)
+                    onCleared: _pdfViewer.search("")
+
+                    actions: [
+                        Action
+                        {
+                            text: i18n("Case sensitive")
+                            checkable: true
+                            icon.name: "format-text-uppercase"
+                            checked: _pdfViewer.searchSensitivity === Qt.CaseSensitive
+                            onTriggered: _pdfViewer.searchSensitivity = checked ? Qt.CaseSensitive : Qt.CaseInsensitive
+                        }
+                    ]
+                }
+            }
 
             footBar.leftContent: ToolButton
             {
@@ -119,8 +147,17 @@ Item
                 icon.name: "view-sidetree"
                 checkable: true
                 checked: false
-                visible: _tocDoc.tocModel && _tocDoc.tocModel.count > 0
+                visible: _pdfViewer.tocModel && _pdfViewer.tocModel.count > 0
                 Maui.Controls.toolTipText: checked ? i18n("Hide table of contents") : i18n("Show table of contents")
+            }
+
+            footBar.rightContent: ToolButton
+            {
+                icon.name: "search"
+                checkable: true
+                checked: _pdfViewer.searchVisible
+                Maui.Controls.toolTipText: checked ? i18n("Hide search bar") : i18n("Search in document")
+                onToggled: _pdfViewer.searchVisible = checked
             }
 
             footBar.middleContent: Item
@@ -206,7 +243,7 @@ Item
             {
                 Shelf.ReadingProgress.saveProgress(control.path,
                                                    _pdfViewer.currentPage,
-                                                   _tocDoc.pages || 0)
+                                                   _pdfViewer.totalPages || 0)
             }
         }
     }

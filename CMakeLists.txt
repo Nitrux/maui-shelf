@@ -20,11 +20,6 @@ set(REQUIRED_KF_VERSION 5.240.0)
 
 find_package(ECM ${REQUIRED_KF_VERSION} REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
-find_package(Qt6 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS Core Gui Sql Multimedia Qml Quick)
-find_package(KF6CoreAddons ${REQUIRED_KF_VERSION} REQUIRED)
-find_package(KF6I18n ${REQUIRED_KF_VERSION} REQUIRED)
-
-find_package(MauiKit4 REQUIRED COMPONENTS FileBrowsing Documents)
 
 include(KDEInstallDirs)
 include(KDECMakeSettings)
@@ -32,6 +27,12 @@ include(KDEClangFormat)
 include(ECMSetupVersion)
 include(ECMSourceVersionControl)
 include(FeatureSummary)
+
+find_package(Qt6 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS Core Gui Sql Multimedia Qml Quick)
+find_package(KF6CoreAddons ${REQUIRED_KF_VERSION} REQUIRED)
+find_package(KF6I18n ${REQUIRED_KF_VERSION} REQUIRED)
+
+find_package(MauiKit4 REQUIRED COMPONENTS FileBrowsing Documents TextEditor)
 
 if(${ECM_SOURCE_UNDER_VERSION_CONTROL})
     execute_process(
@@ -59,7 +60,7 @@ ecm_setup_version(${SHELF_VERSION}
     VARIABLE_PREFIX SHELF
     VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/shelf_version.h")
 
-qt_policy(SET QTP0001 OLD)
+qt_policy(SET QTP0001 NEW)
 qt_policy(SET QTP0004 NEW)
 
 add_subdirectory(src)
