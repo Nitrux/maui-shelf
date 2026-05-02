@@ -93,157 +93,168 @@ Item
             color: Maui.Theme.separatorColor
         }
 
-        Poppler.PDFViewer
+        Item
         {
-            id: _pdfViewer
+            id: _viewerArea
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            path: control.path
-            showSearchControls: false
-            headBar.visible: false
+            readonly property int toolBarsSpacing: Maui.Style.space.small
+            readonly property int toolBarsMargins: Maui.Style.defaultPadding
+            readonly property int toolBarsHeight: _bottomBars.implicitHeight + (toolBarsMargins * 2)
 
-            Connections
+            Poppler.PDFViewer
             {
-                target: _pdfViewer.document
-                function onPagesLoaded()
+                id: _pdfViewer
+                anchors.fill: parent
+                anchors.bottomMargin: _viewerArea.toolBarsHeight
+
+                path: control.path
+                showSearchControls: false
+                headBar.visible: false
+                footBar.visible: false
+
+                Connections
                 {
-                    _restoreTimer.start()
+                    target: _pdfViewer.document
+                    function onPagesLoaded()
+                    {
+                        _restoreTimer.start()
+                    }
+                }
+
+                onCurrentPageChanged:
+                {
+                    Shelf.ReadingProgress.saveProgress(control.path,
+                                                       _pdfViewer.currentPage,
+                                                       _pdfViewer.totalPages || 0)
                 }
             }
 
-            footerColumn: Maui.ToolBar
+            ColumnLayout
             {
-                visible: _pdfViewer.searchVisible
-                width: parent.width
+                id: _bottomBars
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.margins: _viewerArea.toolBarsMargins
+                spacing: _viewerArea.toolBarsSpacing
 
-                middleContent: Maui.SearchField
+                Maui.ToolBar
                 {
-                    id: _searchField
+                    id: _footerSearchBar
+                    visible: _pdfViewer.searchVisible
                     Layout.fillWidth: true
-                    Layout.maximumWidth: 500
-                    Layout.alignment: Qt.AlignHCenter
-                    text: _pdfViewer.currentSearchTerm
+                    position: ToolBar.Footer
 
-                    onAccepted: _pdfViewer.search(text)
-                    onCleared: _pdfViewer.search("")
+                    middleContent: Maui.SearchField
+                    {
+                        id: _searchField
+                        Layout.fillWidth: true
+                        Layout.maximumWidth: 500
+                        Layout.alignment: Qt.AlignHCenter
+                        text: _pdfViewer.currentSearchTerm
 
-                    actions: [
-                        Action
+                        onAccepted: _pdfViewer.search(text)
+                        onCleared: _pdfViewer.search("")
+
+                        actions: [
+                            Action
+                            {
+                                text: i18n("Case sensitive")
+                                checkable: true
+                                icon.name: "format-text-uppercase"
+                                checked: _pdfViewer.searchSensitivity === Qt.CaseSensitive
+                                onTriggered: _pdfViewer.searchSensitivity = checked ? Qt.CaseSensitive : Qt.CaseInsensitive
+                            }
+                        ]
+                    }
+                }
+
+                Maui.ToolBar
+                {
+                    id: _footerMainBar
+                    Layout.fillWidth: true
+                    position: ToolBar.Footer
+                    forceCenterMiddleContent: false
+
+                    leftContent: [
+                        ToolButton
                         {
-                            text: i18n("Case sensitive")
+                            id: _tocToggle
+                            icon.name: "view-sidetree"
                             checkable: true
-                            icon.name: "format-text-uppercase"
-                            checked: _pdfViewer.searchSensitivity === Qt.CaseSensitive
-                            onTriggered: _pdfViewer.searchSensitivity = checked ? Qt.CaseSensitive : Qt.CaseInsensitive
+                            checked: false
+                            visible: _pdfViewer.tocModel && _pdfViewer.tocModel.count > 0
+                            Maui.Controls.toolTipText: checked ? i18n("Hide table of contents") : i18n("Show table of contents")
+                        },
+
+                        ToolSeparator
+                        {
+                            visible: _tocToggle.visible
+                            topPadding: 10
+                            bottomPadding: 10
+                        },
+
+                        Maui.ToolActions
+                        {
+                            expanded: true
+                            autoExclusive: false
+                            checkable: false
+
+                            Action
+                            {
+                                enabled: _pdfViewer.pageScale > 1.0
+                                icon.name: "list-remove"
+                                onTriggered: _pdfViewer.pageScale = Math.max(1.0, _pdfViewer.pageScale - 0.25)
+                            }
+
+                            Action
+                            {
+                                enabled: _pdfViewer.pageScale < 4.0
+                                icon.name: "list-add"
+                                onTriggered: _pdfViewer.pageScale = Math.min(4.0, _pdfViewer.pageScale + 0.25)
+                            }
                         }
                     ]
-                }
-            }
 
-            footBar.leftContent: ToolButton
-            {
-                id: _tocToggle
-                icon.name: "view-sidetree"
-                checkable: true
-                checked: false
-                visible: _pdfViewer.tocModel && _pdfViewer.tocModel.count > 0
-                Maui.Controls.toolTipText: checked ? i18n("Hide table of contents") : i18n("Show table of contents")
-            }
-
-            footBar.rightContent: ToolButton
-            {
-                icon.name: "search"
-                checkable: true
-                checked: _pdfViewer.searchVisible
-                Maui.Controls.toolTipText: checked ? i18n("Hide search bar") : i18n("Search in document")
-                onToggled: _pdfViewer.searchVisible = checked
-            }
-
-            footBar.middleContent: Item
-            {
-                Layout.fillWidth: true
-                implicitHeight: _pageNav.implicitHeight
-
-                RowLayout
-                {
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: Maui.Style.space.medium
-
-                    Label
+                    middleContent: Maui.ToolActions
                     {
-                        text: i18n("Zoom")
-                        font.weight: Font.DemiBold
-                        verticalAlignment: Text.AlignVCenter
-                        Layout.alignment: Qt.AlignVCenter
+                        id: _pageNav
+                        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                        expanded: true
+                        autoExclusive: false
+                        checkable: false
+
+                        Action
+                        {
+                            enabled: _pdfViewer.currentPage > 0
+                            icon.name: _pdfViewer.orientation === ListView.Horizontal ? "go-previous" : "go-up"
+                            onTriggered: _pdfViewer.previousPage()
+                        }
+
+                        Action
+                        {
+                            text: (_pdfViewer.currentPage + 1) + " / " + _pdfViewer.totalPages
+                        }
+
+                        Action
+                        {
+                            enabled: _pdfViewer.currentPage + 1 < _pdfViewer.totalPages
+                            icon.name: _pdfViewer.orientation === ListView.Horizontal ? "go-next" : "go-down"
+                            onTriggered: _pdfViewer.nextPage()
+                        }
                     }
 
-                    ToolButton
+                    rightContent: ToolButton
                     {
-                        icon.name: "list-remove"
-                        display: ToolButton.IconOnly
-                        enabled: _pdfViewer.pageScale > 1.0
-                        Layout.alignment: Qt.AlignVCenter
-                        onClicked: _pdfViewer.pageScale = Math.max(1.0, _pdfViewer.pageScale - 0.25)
-                    }
-
-                    Slider
-                    {
-                        from: 1.0
-                        to: 4.0
-                        stepSize: 0.25
-                        value: _pdfViewer.pageScale
-                        implicitWidth: 100
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.preferredWidth: implicitWidth
-                        onMoved: _pdfViewer.pageScale = value
-                    }
-
-                    ToolButton
-                    {
-                        icon.name: "list-add"
-                        display: ToolButton.IconOnly
-                        enabled: _pdfViewer.pageScale < 4.0
-                        Layout.alignment: Qt.AlignVCenter
-                        onClicked: _pdfViewer.pageScale = Math.min(4.0, _pdfViewer.pageScale + 0.25)
+                        icon.name: "search"
+                        checkable: true
+                        checked: _pdfViewer.searchVisible
+                        Maui.Controls.toolTipText: checked ? i18n("Hide search bar") : i18n("Search in document")
+                        onToggled: _pdfViewer.searchVisible = checked
                     }
                 }
-
-                Maui.ToolActions
-                {
-                    id: _pageNav
-                    anchors.centerIn: parent
-                    expanded: true
-                    autoExclusive: false
-                    checkable: false
-
-                    Action
-                    {
-                        enabled: _pdfViewer.currentPage > 0
-                        icon.name: _pdfViewer.orientation === ListView.Horizontal ? "go-previous" : "go-up"
-                        onTriggered: _pdfViewer.previousPage()
-                    }
-
-                    Action
-                    {
-                        text: (_pdfViewer.currentPage + 1) + " / " + _pdfViewer.totalPages
-                    }
-
-                    Action
-                    {
-                        enabled: _pdfViewer.currentPage + 1 < _pdfViewer.totalPages
-                        icon.name: _pdfViewer.orientation === ListView.Horizontal ? "go-next" : "go-down"
-                        onTriggered: _pdfViewer.nextPage()
-                    }
-                }
-            }
-
-            onCurrentPageChanged:
-            {
-                Shelf.ReadingProgress.saveProgress(control.path,
-                                                   _pdfViewer.currentPage,
-                                                   _pdfViewer.totalPages || 0)
             }
         }
     }

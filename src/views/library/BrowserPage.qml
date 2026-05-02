@@ -18,10 +18,21 @@ Maui.PageLayout
     signal openFileRequested(string path)
 
     background: null
-    altHeader: Maui.Handy.isMobile
+    readonly property bool useSplitToolBars: height > width
+
+    altHeader: Maui.Handy.isMobile && !root.useSplitToolBars
     headerMargins: Maui.Style.defaultPadding
+    floatingFooter: root.useSplitToolBars
+    footerMargins: root.useSplitToolBars ? Maui.Style.defaultPadding : 0
 
     property bool selectionMode: false
+
+    function applyTypeFilter(index)
+    {
+        _typeFilter.currentIndex = index
+        _mobileTypeFilter.currentIndex = index
+        _libraryList.sources = _typeFilter._sources[index]
+    }
 
     LibraryMenu
     {
@@ -204,12 +215,14 @@ Maui.PageLayout
 
         ToolSeparator
         {
+            visible: !root.useSplitToolBars
             bottomPadding: 10
             topPadding: 10
         },
 
         Maui.SearchField
         {
+            visible: !root.useSplitToolBars
             placeholderText: i18n("Search...")
             implicitWidth: 200
             onAccepted: _libraryModel.filter = text
@@ -217,10 +230,26 @@ Maui.PageLayout
         }
     ]
 
+    headBar.middleContent: Maui.SearchField
+    {
+        visible: root.useSplitToolBars
+        Layout.fillWidth: true
+        placeholderText: i18n("Search...")
+        onAccepted: _libraryModel.filter = text
+        onCleared: _libraryModel.filter = ""
+    }
+
     rightContent: [
+        ToolSeparator
+        {
+            visible: root.useSplitToolBars
+            bottomPadding: 10
+            topPadding: 10
+        },
 
         Label
         {
+            visible: !root.useSplitToolBars
             text: i18n("Show")
             font.weight: Font.DemiBold
             verticalAlignment: Text.AlignVCenter
@@ -229,6 +258,7 @@ Maui.PageLayout
         ComboBox
         {
             id: _typeFilter
+            visible: !root.useSplitToolBars
             implicitWidth: 120
 
             model: [i18n("All"), i18n("PDFs"), i18n("EPUBs"), i18n("Comics")]
@@ -240,11 +270,12 @@ Maui.PageLayout
                 ["comics:///"]
             ]
 
-            onActivated: (idx) => _libraryList.sources = _sources[idx]
+            onActivated: (idx) => root.applyTypeFilter(idx)
         },
 
         ToolSeparator
         {
+            visible: !root.useSplitToolBars
             bottomPadding: 10
             topPadding: 10
         },
@@ -265,6 +296,46 @@ Maui.PageLayout
                 text: i18n("About")
                 icon.name: "documentinfo"
                 onTriggered: windowRoot.about()
+            }
+        }
+    ]
+
+    footerColumn: [
+        Maui.ToolBar
+        {
+            visible: root.useSplitToolBars
+            width: parent ? parent.width : 0
+            position: ToolBar.Footer
+            background: Rectangle
+            {
+                color: Maui.Theme.backgroundColor
+                radius: Maui.Style.radiusV
+                border.color: Maui.Theme.alternateBackgroundColor
+                border.pixelAligned: false
+                antialiasing: true
+            }
+
+            middleContent: RowLayout
+            {
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                spacing: Maui.Style.space.small
+
+                Label
+                {
+                    text: i18n("Show")
+                    font.weight: Font.DemiBold
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                ComboBox
+                {
+                    id: _mobileTypeFilter
+                    implicitWidth: 120
+                    currentIndex: _typeFilter.currentIndex
+                    model: _typeFilter.model
+
+                    onActivated: (index) => root.applyTypeFilter(index)
+                }
             }
         }
     ]
