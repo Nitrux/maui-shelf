@@ -16,6 +16,7 @@ Maui.ApplicationWindow
 {
     id: root
     title: viewerView.title.length > 0 ? viewerView.title + " - " + i18n("Shelf") : i18n("Shelf")
+    onClosing: viewerView.prepareForShutdown()
 
     color: "transparent"
     background: null
@@ -60,7 +61,7 @@ Maui.ApplicationWindow
     {
         anchors.fill: parent
         color: Maui.Theme.backgroundColor
-        opacity: 0.76
+        opacity: viewerView.active && !viewerView.hasOpenTabs ? 0 : 0.76
         radius: Maui.Style.radiusV
         border.color: Qt.rgba(1, 1, 1, 0)
         border.width: 1

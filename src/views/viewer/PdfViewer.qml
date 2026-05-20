@@ -11,6 +11,7 @@ Item
     id: control
 
     property string path
+    readonly property color separatorColor: Maui.Theme.separatorColor ? Maui.Theme.separatorColor : "transparent"
     property alias orientation: _pdfViewer.orientation
     property alias currentItem: _pdfViewer.currentItem
     readonly property int currentPage: _pdfViewer.currentPage
@@ -90,7 +91,7 @@ Item
             visible: _tocPanel.visible
             Layout.preferredWidth: 1
             Layout.fillHeight: true
-            color: Maui.Theme.separatorColor
+            color: control.separatorColor
         }
 
         Item
