@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(SHELF_VERSION 4.0.3)
+set(SHELF_VERSION 4.0.4)
 add_compile_definitions(APP_COPYRIGHT_NOTICE="© 2019-2025 Maui Development Team")
 
 project(shelf LANGUAGES CXX VERSION ${SHELF_VERSION})
@@ -48,7 +48,7 @@ find_package(Qt6 ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE COMPONENTS Core Gui S
 find_package(KF6CoreAddons ${REQUIRED_KF_VERSION} REQUIRED)
 find_package(KF6I18n ${REQUIRED_KF_VERSION} REQUIRED)
 
-find_package(MauiKit4 4.0.3 REQUIRED COMPONENTS FileBrowsing Documents)
+find_package(MauiKit4 4.0.4 REQUIRED COMPONENTS FileBrowsing Documents)
 
 if(${ECM_SOURCE_UNDER_VERSION_CONTROL})
     execute_process(
