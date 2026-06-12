@@ -26,6 +26,37 @@ Item
         return lastDot > 0 ? fname.substring(0, lastDot) : fname
     }
 
+    function goFirstPage()
+    {
+        _pdfViewer.goTo({ page: 0, top: 0 })
+    }
+
+    function goLastPage()
+    {
+        if (_pdfViewer.totalPages > 0)
+            _pdfViewer.goTo({ page: _pdfViewer.totalPages - 1, top: 0 })
+    }
+
+    function zoomIn()
+    {
+        _pdfViewer.pageScale = Math.min(4.0, _pdfViewer.pageScale + 0.25)
+    }
+
+    function zoomOut()
+    {
+        _pdfViewer.pageScale = Math.max(1.0, _pdfViewer.pageScale - 0.25)
+    }
+
+    function toggleContents()
+    {
+        _tocToggle.checked = !_tocToggle.checked
+    }
+
+    function toggleSearch()
+    {
+        _pdfViewer.searchVisible = !_pdfViewer.searchVisible
+    }
+
     Timer
     {
         id: _restoreTimer
@@ -36,6 +67,70 @@ Item
             if (savedPage > 0)
                 _pdfViewer.goTo({ page: savedPage, top: 0 })
         }
+    }
+
+    Shortcut
+    {
+        sequence: "PageUp"
+        context: Qt.WindowShortcut
+        enabled: true
+        onActivated: _pdfViewer.previousPage()
+    }
+
+    Shortcut
+    {
+        sequence: "PageDown"
+        context: Qt.WindowShortcut
+        enabled: true
+        onActivated: _pdfViewer.nextPage()
+    }
+
+    Shortcut
+    {
+        sequence: "Home"
+        context: Qt.WindowShortcut
+        enabled: true
+        onActivated: control.goFirstPage()
+    }
+
+    Shortcut
+    {
+        sequence: "End"
+        context: Qt.WindowShortcut
+        enabled: true
+        onActivated: control.goLastPage()
+    }
+
+    Shortcut
+    {
+        sequence: StandardKey.ZoomIn
+        context: Qt.WindowShortcut
+        enabled: true
+        onActivated: control.zoomIn()
+    }
+
+    Shortcut
+    {
+        sequence: StandardKey.ZoomOut
+        context: Qt.WindowShortcut
+        enabled: true
+        onActivated: control.zoomOut()
+    }
+
+    Shortcut
+    {
+        sequence: "Ctrl+F"
+        context: Qt.WindowShortcut
+        enabled: true
+        onActivated: control.toggleSearch()
+    }
+
+    Shortcut
+    {
+        sequence: "F4"
+        context: Qt.WindowShortcut
+        enabled: true
+        onActivated: control.toggleContents()
     }
 
     RowLayout

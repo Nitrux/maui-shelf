@@ -18,6 +18,7 @@ Item
     readonly property bool hasOpenTabs: !!_tabView.currentItem
     readonly property string title : _tabView.currentItem ? _tabView.currentItem.title : ""
     property bool suppressHolderWhileExiting: false
+    property var windowRoot: null
     readonly property int _stackStatus: StackView.status
 
     function tabPath(index)
@@ -41,6 +42,20 @@ Item
         }
 
         return -1
+    }
+
+    function changeTab(delta)
+    {
+        if (_tabView.count <= 0)
+            return
+
+        var next = _tabView.currentIndex + delta
+        if (next < 0 || next >= _tabView.count)
+            return
+
+        _tabView.setCurrentIndex(next)
+        if (_tabView.currentItem)
+            _tabView.currentItem.forceActiveFocus()
     }
 
     function closeTab(index)
@@ -131,6 +146,42 @@ Item
         context: Qt.WindowShortcut
         enabled: viewerView.active && _tabView.count > 0
         onActivated: control.closeTab(_tabView.currentIndex)
+    }
+
+    Shortcut
+    {
+        sequence: "Alt+Left"
+        context: Qt.WindowShortcut
+        enabled: viewerView.active
+        onActivated: toggleViewer()
+    }
+
+    Shortcut
+    {
+        sequence: "Ctrl+Tab"
+        context: Qt.WindowShortcut
+        enabled: viewerView.active && _tabView.count > 1
+        onActivated: control.changeTab(1)
+    }
+
+    Shortcut
+    {
+        sequence: "Ctrl+Shift+Tab"
+        context: Qt.WindowShortcut
+        enabled: viewerView.active && _tabView.count > 1
+        onActivated: control.changeTab(-1)
+    }
+
+    Shortcut
+    {
+        sequence: "F6"
+        context: Qt.WindowShortcut
+        enabled: viewerView.active && _tabView.currentItem && _tabView.currentItem.hasOwnProperty("orientation")
+        onActivated:
+        {
+            if (_tabView.currentItem.hasOwnProperty("orientation"))
+                _tabView.currentItem.orientation = _tabView.currentItem.orientation === ListView.Horizontal ? ListView.Vertical : ListView.Horizontal
+        }
     }
 
     Maui.TabView
@@ -329,6 +380,17 @@ Item
                         checked: root.visibility === Window.FullScreen
                         icon.name: "view-fullscreen"
                         onTriggered: root.visibility = (root.visibility === Window.FullScreen  ? Window.Windowed : Window.FullScreen)
+                    }
+
+                    MenuItem
+                    {
+                        text: i18n("Shortcuts")
+                        icon.name: "configure-shortcuts"
+                        onTriggered:
+                        {
+                            if (windowRoot && typeof windowRoot.openShortcutsDialog === "function")
+                                windowRoot.openShortcutsDialog()
+                        }
                     }
                 }
             }

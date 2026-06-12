@@ -1,6 +1,7 @@
 import QtQuick
 import QtCore
 import QtQuick.Controls
+import QtQuick.Window
 
 import org.mauikit.controls as Maui
 import org.mauikit.filebrowsing as FB
@@ -34,6 +35,16 @@ Maui.ApplicationWindow
         id: _settingsDialogComponent
 
         SettingsDialog
+        {
+            onClosed: destroy()
+        }
+    }
+
+    Component
+    {
+        id: _shortcutsDialogComponent
+
+        ShortcutsDialog
         {
             onClosed: destroy()
         }
@@ -81,6 +92,7 @@ Maui.ApplicationWindow
             readonly property bool active : StackView.status === StackView.Active
             Maui.Controls.showCSD: true
             clip: true
+            windowRoot: root
         }
 
         Component
@@ -116,6 +128,12 @@ Maui.ApplicationWindow
         dialog.open()
     }
 
+    function openShortcutsDialog()
+    {
+        var dialog = _shortcutsDialogComponent.createObject(root)
+        dialog.open()
+    }
+
     function toggleViewer()
     {
         if (viewerView.active)
@@ -135,5 +153,12 @@ Maui.ApplicationWindow
         }
 
         _stackView.currentItem.forceActiveFocus()
+    }
+
+    Shortcut
+    {
+        sequence: "F11"
+        context: Qt.WindowShortcut
+        onActivated: root.visibility = (root.visibility === Window.FullScreen ? Window.Windowed : Window.FullScreen)
     }
 }

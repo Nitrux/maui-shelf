@@ -286,6 +286,13 @@ Maui.PageLayout
 
             MenuItem
             {
+                text: i18n("Shortcuts")
+                icon.name: "configure-shortcuts"
+                onTriggered: windowRoot.openShortcutsDialog()
+            }
+
+            MenuItem
+            {
                 text: i18n("Preferences")
                 icon.name: "settings-configure"
                 onTriggered: windowRoot.openSettingsDialog()

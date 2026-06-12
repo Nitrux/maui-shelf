@@ -30,7 +30,8 @@ qt_add_qml_module(${PROJECT_NAME} URI app.maui.shelf
     views/viewer/DocumentViewer.qml
     views/viewer/PdfViewer.qml
     views/viewer/EpubViewer.qml
-    views/SettingsDialog.qml)
+    views/SettingsDialog.qml
+    views/ShortcutsDialog.qml)
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
