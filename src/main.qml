@@ -154,11 +154,10 @@ Maui.ApplicationWindow
 
         _stackView.currentItem.forceActiveFocus()
     }
-
     Shortcut
     {
         sequence: "F11"
-        context: Qt.WindowShortcut
+        context: Qt.ApplicationShortcut
         onActivated: root.visibility = (root.visibility === Window.FullScreen ? Window.Windowed : Window.FullScreen)
     }
 }

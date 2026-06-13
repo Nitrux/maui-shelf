@@ -140,49 +140,6 @@ Item
         _tabView.currentIndex = -1
     }
 
-    Shortcut
-    {
-        sequence: "Ctrl+W"
-        context: Qt.WindowShortcut
-        enabled: viewerView.active && _tabView.count > 0
-        onActivated: control.closeTab(_tabView.currentIndex)
-    }
-
-    Shortcut
-    {
-        sequence: "Alt+Left"
-        context: Qt.WindowShortcut
-        enabled: viewerView.active
-        onActivated: toggleViewer()
-    }
-
-    Shortcut
-    {
-        sequence: "Ctrl+Tab"
-        context: Qt.WindowShortcut
-        enabled: viewerView.active && _tabView.count > 1
-        onActivated: control.changeTab(1)
-    }
-
-    Shortcut
-    {
-        sequence: "Ctrl+Shift+Tab"
-        context: Qt.WindowShortcut
-        enabled: viewerView.active && _tabView.count > 1
-        onActivated: control.changeTab(-1)
-    }
-
-    Shortcut
-    {
-        sequence: "F6"
-        context: Qt.WindowShortcut
-        enabled: viewerView.active && _tabView.currentItem && _tabView.currentItem.hasOwnProperty("orientation")
-        onActivated:
-        {
-            if (_tabView.currentItem.hasOwnProperty("orientation"))
-                _tabView.currentItem.orientation = _tabView.currentItem.orientation === ListView.Horizontal ? ListView.Vertical : ListView.Horizontal
-        }
-    }
 
     Maui.TabView
     {
