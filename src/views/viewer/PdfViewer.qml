@@ -39,7 +39,12 @@ Item
 
     function zoomOut()
     {
-        _pdfViewer.pageScale = Math.max(1.0, _pdfViewer.pageScale - 0.25)
+        _pdfViewer.zoomBy(-0.25)
+    }
+
+    function zoomIn()
+    {
+        _pdfViewer.zoomBy(0.25)
     }
 
     function toggleContents()
@@ -88,34 +93,12 @@ Item
 
     Shortcut
     {
-        sequence: StandardKey.ZoomOut
-        context: Qt.ApplicationShortcut
-        enabled: true
-        onActivated:
-        {
-            control.zoomOut()
-        }
-    }
-
-    Shortcut
-    {
         sequence: "Ctrl+F"
         context: Qt.ApplicationShortcut
         enabled: true
         onActivated:
         {
             control.toggleSearch()
-        }
-    }
-
-    Shortcut
-    {
-        sequence: "F4"
-        context: Qt.ApplicationShortcut
-        enabled: true
-        onActivated:
-        {
-            control.toggleContents()
         }
     }
 
@@ -288,14 +271,14 @@ Item
                             {
                                 enabled: _pdfViewer.pageScale > 1.0
                                 icon.name: "list-remove"
-                                onTriggered: _pdfViewer.pageScale = Math.max(1.0, _pdfViewer.pageScale - 0.25)
+                                onTriggered: control.zoomOut()
                             }
 
                             Action
                             {
                                 enabled: _pdfViewer.pageScale < 4.0
                                 icon.name: "list-add"
-                                onTriggered: _pdfViewer.pageScale = Math.min(4.0, _pdfViewer.pageScale + 0.25)
+                                onTriggered: control.zoomIn()
                             }
                         }
                     ]

@@ -55,18 +55,6 @@ Maui.SettingsDialog
 
         Maui.FlexSectionItem
         {
-            label1.text: i18n("Toggle Contents")
-
-            Maui.ToolActions
-            {
-                checkable: false
-                autoExclusive: false
-                Action { text: "F4" }
-            }
-        }
-
-        Maui.FlexSectionItem
-        {
             label1.text: i18n("Search")
 
             Maui.ToolActions
@@ -75,19 +63,6 @@ Maui.SettingsDialog
                 autoExclusive: false
                 Action { text: "Ctrl" }
                 Action { text: "F" }
-            }
-        }
-
-        Maui.FlexSectionItem
-        {
-            label1.text: i18n("Zoom Out")
-
-            Maui.ToolActions
-            {
-                checkable: false
-                autoExclusive: false
-                Action { text: "Ctrl" }
-                Action { text: "-" }
             }
         }
     }
