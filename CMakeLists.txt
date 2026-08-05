@@ -83,8 +83,8 @@ qt_policy(SET QTP0004 NEW)
 add_subdirectory(src)
 ki18n_install(po)
 
-install(FILES org.kde.shelf.desktop DESTINATION ${KDE_INSTALL_APPDIR})
-install(FILES org.kde.shelf.metainfo.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
+install(FILES org.maui.shelf.desktop DESTINATION ${KDE_INSTALL_APPDIR})
+install(FILES org.maui.shelf.metainfo.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
