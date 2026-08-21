@@ -34,6 +34,15 @@ Maui.PageLayout
         _libraryList.sources = _typeFilter._sources[index]
     }
 
+    function setCurrentLibraryIndex(index)
+    {
+        if (!_browser.currentView)
+            return
+
+        _browser.currentView.currentIndex = index
+        _browser.currentView.forceActiveFocus()
+    }
+
     LibraryMenu
     {
         id: _menu
@@ -488,8 +497,8 @@ Maui.PageLayout
 
                         onClicked: (mouse) =>
                         {
-                            _browser.currentIndex = index
-                            const item = _browser.model.get(_browser.currentIndex)
+                            root.setCurrentLibraryIndex(index)
+                            const item = _browser.model.get(index)
 
                             if (root.selectionMode || (mouse.button === Qt.LeftButton && (mouse.modifiers & Qt.ControlModifier)))
                             {
@@ -503,23 +512,23 @@ Maui.PageLayout
 
                         onDoubleClicked:
                         {
-                            _browser.currentIndex = index
+                            root.setCurrentLibraryIndex(index)
                             if (!Maui.Handy.singleClick && !root.selectionMode)
                             {
-                                const item = _browser.model.get(_browser.currentIndex)
+                                const item = _browser.model.get(index)
                                 root.openFileRequested(item.url)
                             }
                         }
 
                         onPressAndHold:
                         {
-                            _browser.currentIndex = index
+                            root.setCurrentLibraryIndex(index)
                             _menu.show()
                         }
 
                         onRightClicked:
                         {
-                            _browser.currentIndex = index
+                            root.setCurrentLibraryIndex(index)
                             _menu.show()
                         }
                     }
@@ -564,8 +573,8 @@ Maui.PageLayout
 
                     onClicked: (mouse) =>
                     {
-                        _browser.currentIndex = index
-                        const item = _browser.model.get(_browser.currentIndex)
+                        root.setCurrentLibraryIndex(index)
+                        const item = _browser.model.get(index)
 
                         if (root.selectionMode || (mouse.button === Qt.LeftButton && (mouse.modifiers & Qt.ControlModifier)))
                         {
@@ -579,23 +588,23 @@ Maui.PageLayout
 
                     onDoubleClicked:
                     {
-                        _browser.currentIndex = index
+                        root.setCurrentLibraryIndex(index)
                         if (!Maui.Handy.singleClick && !root.selectionMode)
                         {
-                            const item = _browser.model.get(_browser.currentIndex)
+                            const item = _browser.model.get(index)
                             root.openFileRequested(item.url)
                         }
                     }
 
                     onPressAndHold:
                     {
-                        _browser.currentIndex = index
+                        root.setCurrentLibraryIndex(index)
                         _menu.show()
                     }
 
                     onRightClicked:
                     {
-                        _browser.currentIndex = index
+                        root.setCurrentLibraryIndex(index)
                         _menu.show()
                     }
                 }
