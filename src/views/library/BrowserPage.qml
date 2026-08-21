@@ -45,48 +45,50 @@ Maui.PageLayout
     {
         id: _continueReadingComponent
 
-        Item
+        Rectangle
         {
             id: _continueReading
-            // implicitHeight drives the outer container's preferred height:
-            // label + gap + desired flickable area + bottom margin
-            implicitHeight: _recentLabel.implicitHeight
+            color: Maui.Theme.alternateBackgroundColor
+            radius: Maui.Style.radiusV
+            border.color: Maui.Theme.backgroundColor
+            border.width: 1
+
+            implicitHeight: _recentHeader.implicitHeight
                             + Maui.Style.space.medium
                             + 172
                             + Maui.Style.space.medium
+                            + _clearButton.implicitHeight
+                            + (Maui.Style.contentMargins * 2)
 
-            Label
+            Maui.SectionHeader
             {
-                id: _recentLabel
+                id: _recentHeader
                 anchors.top: parent.top
                 anchors.left: parent.left
-                anchors.leftMargin: Maui.Style.space.medium
-                anchors.topMargin: Maui.Style.space.small
-                text: i18n("Continue Reading")
-                font.bold: true
-                opacity: 0.7
+                anchors.right: parent.right
+                anchors.margins: Maui.Style.contentMargins
+                text1: i18n("Continue Reading")
+                text2: i18n("Open a recent document to continue reading where you left off.")
             }
 
-            ToolButton
+            Button
             {
-                icon.name: "edit-clear-all"
-                text: i18n("Clear")
-                display: ToolButton.TextBesideIcon
+                id: _clearButton
+                text: i18n("Clear All")
                 anchors.right: parent.right
-                anchors.rightMargin: Maui.Style.space.medium
-                anchors.verticalCenter: _recentLabel.verticalCenter
-                Maui.Controls.toolTipText: i18n("Clear list")
+                anchors.bottom: parent.bottom
+                anchors.margins: Maui.Style.contentMargins
                 onClicked: Shelf.ReadingProgress.clearRecent()
             }
 
             Flickable
             {
                 id: _recentList
-                anchors.top: _recentLabel.bottom
+                anchors.top: _recentHeader.bottom
                 anchors.topMargin: Maui.Style.space.medium
                 anchors.left: parent.left
                 anchors.right: parent.right
-                anchors.bottom: parent.bottom
+                anchors.bottom: _clearButton.top
                 anchors.bottomMargin: Maui.Style.space.medium
                 clip: true
                 contentWidth: _recentRow.width + (horizontalPadding * 2)
@@ -366,20 +368,6 @@ Maui.PageLayout
             Layout.minimumHeight: 0
             Layout.maximumHeight: 440
             clip: true
-
-            Rectangle
-            {
-                anchors.fill: parent
-                anchors.leftMargin: Maui.Style.space.medium
-                anchors.rightMargin: Maui.Style.space.medium
-                anchors.topMargin: Maui.Style.space.small
-                anchors.bottomMargin: Maui.Style.space.small
-                radius: Maui.Style.radiusV
-                color: Maui.Theme.backgroundColor
-                opacity: 0.62
-                border.width: 1
-                border.color: Qt.rgba(1, 1, 1, 0.08)
-            }
 
             Loader
             {
