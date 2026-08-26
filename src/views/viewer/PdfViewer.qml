@@ -10,7 +10,18 @@ Item
 {
     id: control
 
+    // DocumentViewer focuses this wrapper when switching tabs. Forward key
+    // events so the embedded viewer can keep handling Space-to-pan input.
+    Keys.forwardTo: [_pdfViewer]
+
     property string path
+    property bool enableOCR: false
+
+    onEnableOCRChanged:
+    {
+        if (!enableOCR && _pdfViewer)
+            _pdfViewer.clearSelection()
+    }
     readonly property color separatorColor: Maui.Theme.separatorColor ? Maui.Theme.separatorColor : "transparent"
     property alias orientation: _pdfViewer.orientation
     property alias currentItem: _pdfViewer.currentItem
@@ -175,6 +186,7 @@ Item
                 anchors.bottomMargin: _viewerArea.toolBarsHeight
 
                 path: control.path
+                enableLassoSelection: control.enableOCR
                 showSearchControls: false
                 headBar.visible: false
                 footBar.visible: false

@@ -94,6 +94,23 @@ Maui.SettingsDialog
 
     Maui.SectionGroup
     {
+        title: i18n("Text Detection")
+
+        Maui.FlexSectionItem
+        {
+            label1.text: i18n("Enable OCR")
+            label2.text: i18n("Enable optical character recognition when supported by the document viewer.")
+
+            Switch
+            {
+                checked: viewerSettings.enableOCR
+                onToggled: viewerSettings.enableOCR = !viewerSettings.enableOCR
+            }
+        }
+    }
+
+    Maui.SectionGroup
+    {
         title: i18n("Sources")
 
         ColumnLayout

@@ -26,6 +26,20 @@ Maui.PageLayout
     footerMargins: root.useSplitToolBars ? Maui.Style.defaultPadding : 0
 
     property bool selectionMode: false
+    property bool navigationPending: false
+
+    onVisibleChanged:
+    {
+        if (visible)
+            navigationPending = false
+    }
+
+    function openDocument(path)
+    {
+        _menu.close()
+        navigationPending = true
+        root.openFileRequested(path)
+    }
 
     function applyTypeFilter(index)
     {
@@ -150,7 +164,7 @@ Maui.PageLayout
                             template.fillMode: Image.PreserveAspectFit
                             template.labelSizeHint: 28
 
-                            onClicked: root.openFileRequested(modelData.url || modelData.path)
+                            onClicked: root.openDocument(modelData.url || modelData.path)
                         }
                     }
                 }
@@ -506,7 +520,7 @@ Maui.PageLayout
                             }
                             else if (Maui.Handy.singleClick)
                             {
-                                root.openFileRequested(item.url)
+                                root.openDocument(item.url)
                             }
                         }
 
@@ -516,18 +530,24 @@ Maui.PageLayout
                             if (!Maui.Handy.singleClick && !root.selectionMode)
                             {
                                 const item = _browser.model.get(index)
-                                root.openFileRequested(item.url)
+                                root.openDocument(item.url)
                             }
                         }
 
                         onPressAndHold:
                         {
+                            if (root.navigationPending)
+                                return
+
                             root.setCurrentLibraryIndex(index)
                             _menu.show()
                         }
 
                         onRightClicked:
                         {
+                            if (root.navigationPending)
+                                return
+
                             root.setCurrentLibraryIndex(index)
                             _menu.show()
                         }
@@ -582,7 +602,7 @@ Maui.PageLayout
                         }
                         else if (Maui.Handy.singleClick)
                         {
-                            root.openFileRequested(item.url)
+                            root.openDocument(item.url)
                         }
                     }
 
@@ -592,18 +612,24 @@ Maui.PageLayout
                         if (!Maui.Handy.singleClick && !root.selectionMode)
                         {
                             const item = _browser.model.get(index)
-                            root.openFileRequested(item.url)
+                            root.openDocument(item.url)
                         }
                     }
 
                     onPressAndHold:
                     {
+                        if (root.navigationPending)
+                            return
+
                         root.setCurrentLibraryIndex(index)
                         _menu.show()
                     }
 
                     onRightClicked:
                     {
+                        if (root.navigationPending)
+                            return
+
                         root.setCurrentLibraryIndex(index)
                         _menu.show()
                     }

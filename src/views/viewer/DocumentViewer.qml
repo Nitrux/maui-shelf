@@ -19,6 +19,7 @@ Item
     readonly property string title : _tabView.currentItem ? _tabView.currentItem.title : ""
     property bool suppressHolderWhileExiting: false
     property var windowRoot: null
+    property var viewerSettings: null
     readonly property int _stackStatus: StackView.status
 
     function tabPath(index)
@@ -82,15 +83,7 @@ Item
                 if (_tabView.count !== 1)
                     return
 
-                if (_tabView.contentModel && typeof _tabView.contentModel.remove === "function")
-                {
-                    _tabView.contentModel.remove(0, 1)
-                    _tabView.currentIndex = -1
-                }
-                else
-                {
-                    _tabView.closeTab(0)
-                }
+                _tabView.closeTab(0)
 
                 control.suppressHolderWhileExiting = false
             })
@@ -98,25 +91,7 @@ Item
             return
         }
 
-        // Maui.TabView.closeTab() tries to focus currentItem after removal.
-        // When closing the last tab currentItem becomes null, so remove it
-        // directly from the model to avoid that null-focus path.
-        if (_tabView.count === 1 && _tabView.contentModel && typeof _tabView.contentModel.remove === "function")
-        {
-            _tabView.contentModel.remove(index, 1)
-            if (_tabView.count === 0)
-            {
-                _tabView.currentIndex = -1
-            }
-            else
-            {
-                _tabView.closeTab(index)
-            }
-        }
-        else
-        {
-            _tabView.closeTab(index)
-        }
+        _tabView.closeTab(index)
 
         if (_tabView.count === 0 && viewerView.active)
             Qt.callLater(() =>
@@ -131,13 +106,8 @@ Item
         suppressHolderWhileExiting = true
         _tabView.tabBar.visible = false
 
-        if (!_tabView.contentModel || typeof _tabView.contentModel.remove !== "function")
-            return
-
         while (_tabView.count > 0)
-            _tabView.contentModel.remove(_tabView.count - 1, 1)
-
-        _tabView.currentIndex = -1
+            _tabView.closeTab(_tabView.count - 1)
     }
 
 
@@ -192,8 +162,8 @@ Item
             checked: mindex === tabView.currentIndex
             text: tabInfo.title || ""
             icon.name: tabInfo.iconName || ""
-            Maui.Controls.badgeText: tabInfo.badgeText
-            Maui.Controls.status: tabInfo.status
+            Maui.Controls.badgeText: tabInfo.badgeText || ""
+            Maui.Controls.status: tabInfo.status !== undefined ? tabInfo.status : Maui.Controls.Normal
 
             onClicked:
             {
@@ -360,6 +330,7 @@ Item
 
         PdfViewer
         {
+            enableOCR: control.viewerSettings ? control.viewerSettings.enableOCR : false
             Maui.Controls.title: title
             Maui.Controls.toolTipText: path
         }

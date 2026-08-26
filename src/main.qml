@@ -27,6 +27,7 @@ Maui.ApplicationWindow
         id: appSettings
         property bool autoScan : true
         property bool showThumbnails: true
+        property bool enableOCR: false
         property int viewType : Maui.AltBrowser.ViewType.Grid
     }
 
@@ -93,6 +94,7 @@ Maui.ApplicationWindow
             Maui.Controls.showCSD: true
             clip: true
             windowRoot: root
+            viewerSettings: appSettings
         }
 
         Component
@@ -138,6 +140,8 @@ Maui.ApplicationWindow
     {
         if (viewerView.active)
         {
+            viewerView.visible = false
+
             if (_stackView.depth === 1)
             {
                 _stackView.replace(viewerView, browserPageComponent)
@@ -150,6 +154,7 @@ Maui.ApplicationWindow
         else
         {
             _stackView.push(viewerView)
+            viewerView.visible = true
         }
 
         _stackView.currentItem.forceActiveFocus()
