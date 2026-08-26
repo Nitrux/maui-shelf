@@ -68,6 +68,11 @@ Item
         _pdfViewer.searchVisible = !_pdfViewer.searchVisible
     }
 
+    function saveChanges()
+    {
+        return _pdfViewer.saveChanges()
+    }
+
     Timer
     {
         id: _restoreTimer
@@ -292,6 +297,15 @@ Item
                                 icon.name: "list-add"
                                 onTriggered: control.zoomIn()
                             }
+                        },
+
+                        ToolButton
+                        {
+                            visible: _pdfViewer.supportsSavingChanges
+                            enabled: _pdfViewer.hasPendingChanges
+                            icon.name: "document-save"
+                            Maui.Controls.toolTipText: i18n("Save Changes")
+                            onClicked: control.saveChanges()
                         }
                     ]
 
