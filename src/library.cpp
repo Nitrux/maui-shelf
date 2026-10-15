@@ -71,7 +71,7 @@ void Library::removeSource(const QString &url)
     settings.setValue("Sources", m_sources);
     settings.endGroup();
 
-    Q_EMIT this->sourcesChanged(m_sources);
+    Q_EMIT this->sourcesChanged();
 }
 
 void Library::addSources(const QStringList &urls)
@@ -84,7 +84,7 @@ void Library::addSources(const QStringList &urls)
     settings.setValue("Sources", m_sources);
     settings.endGroup();
 
-    Q_EMIT this->sourcesChanged(m_sources);
+    Q_EMIT this->sourcesChanged();
 }
 
 bool Library::isPDF(const QString &url)

@@ -108,7 +108,7 @@ LibraryModel::LibraryModel(QObject *parent)
 
     connect(this, &LibraryModel::sourcesChanged, this, &LibraryModel::setList);
 
-    connect(Library::instance(), &Library::sourcesChanged, this, [this](const QStringList &)
+    connect(Library::instance(), &Library::sourcesChanged, this, [this]
     {
         setList(m_sources);
     });

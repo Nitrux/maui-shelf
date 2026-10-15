@@ -9,7 +9,7 @@
 #include <QQmlContext>
 
 #include <KAboutData>
-#include <KLocalizedContext>
+#include <KLocalizedQmlContext>
 #include <KLocalizedString>
 
 #include <MauiKit4/Core/mauiapp.h>
@@ -20,7 +20,7 @@
 #include "models/library/librarymodel.h"
 #include "models/readingprogress.h"
 
-#include "../shelf_version.h"
+#include "shelf_version.h"
 
 #define SHELF_URI "org.maui.shelf"
 
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
         },
         Qt::QueuedConnection);
 
-    engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
+    engine.rootContext()->setContextObject(new KLocalizedQmlContext(&engine));
     engine.rootContext()->setContextProperty("globalQmlEngine", &engine);
     engine.rootContext()->setContextProperty("initModule", arguments.first);
     engine.rootContext()->setContextProperty("initData", QUrl::toStringList(arguments.second));

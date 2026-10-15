@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QUrl>
+#include <QVariantList>
 
 class Library : public QObject
 {
@@ -31,5 +32,5 @@ private:
 
 Q_SIGNALS:
     void requestedFiles(QList<QUrl> files);
-    void sourcesChanged(QStringList sources);
+    void sourcesChanged();
 };
