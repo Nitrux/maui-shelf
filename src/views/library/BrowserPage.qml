@@ -23,6 +23,12 @@ Maui.PageLayout
     altHeader: Maui.Handy.isMobile && !root.useSplitToolBars
     headerMargins: Maui.Style.defaultPadding
     floatingFooter: root.useSplitToolBars
+    headBar.preferredHeight: Maui.Style.rowHeightAlt
+    headBar.topPadding: Maui.Style.defaultPadding
+    headBar.bottomPadding: Maui.Style.defaultPadding
+    footBar.preferredHeight: Maui.Style.rowHeightAlt
+    footBar.topPadding: Maui.Style.defaultPadding
+    footBar.bottomPadding: Maui.Style.defaultPadding
     footerMargins: root.useSplitToolBars ? Maui.Style.defaultPadding : 0
 
     property bool selectionMode: false
