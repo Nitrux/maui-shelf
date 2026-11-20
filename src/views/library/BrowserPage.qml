@@ -453,7 +453,7 @@ Maui.PageLayout
                 holder.visible: _browser.count === 0
                 holder.title: i18n("Nothing here!")
                 holder.body: i18n("Add sources to manage your documents.")
-                holder.emoji: "qrc:/assets/document-new.svg"
+                holder.emoji: "document-new"
                 model: Maui.BaseModel
                 {
                     id: _libraryModel

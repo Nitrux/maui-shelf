@@ -11,13 +11,9 @@ set(shelf_SRCS
     models/library/librarymodel.cpp
     models/readingprogress.cpp)
 
-set(shelf_ASSETS
-    lib_assets.qrc)
-
 qt_add_executable(${PROJECT_NAME}
     MANUAL_FINALIZATION
-    ${shelf_SRCS}
-    ${shelf_ASSETS})
+    ${shelf_SRCS})
 
 qt_add_qml_module(${PROJECT_NAME} URI app.maui.shelf
     NO_PLUGIN
@@ -53,6 +49,5 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 install(TARGETS ${PROJECT_NAME} ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
-install(FILES assets/shelf.svg DESTINATION ${KDE_INSTALL_ICONDIR}/hicolor/scalable/apps)
 
 qt_finalize_target(${PROJECT_NAME})

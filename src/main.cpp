@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     app.setOrganizationName("Maui");
-    app.setWindowIcon(QIcon(":/assets/shelf.svg"));
+    app.setWindowIcon(QIcon::fromTheme(QStringLiteral("shelf")));
 
     KLocalizedString::setApplicationDomain("shelf");
     KAboutData about(QStringLiteral("shelf"),
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     about.addComponent(PopplerData.name(), "", PopplerData.version(), PopplerData.webAddress());
 
     KAboutData::setApplicationData(about);
-    MauiApp::instance()->setIconName("qrc:/assets/shelf.svg");
+    MauiApp::instance()->setIconName("shelf");
 
     QCommandLineParser parser;
 

@@ -120,7 +120,7 @@ Maui.ApplicationWindow
         function onRequestedFiles(files)
         {
             for (var file of files)
-                viewerView.open(file)
+                viewerView.open(String(file))
         }
     }
 
