@@ -51,3 +51,11 @@ target_link_libraries(${PROJECT_NAME}
 install(TARGETS ${PROJECT_NAME} ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
 
 qt_finalize_target(${PROJECT_NAME})
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    <QDebug>
+    <QFileInfo>
+    <QGuiApplication>
+    <QQmlEngine>
+    <QQuickWindow>
+)
