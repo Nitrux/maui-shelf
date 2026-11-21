@@ -107,5 +107,5 @@ GenericName[uk]=Переглядач документів
 GenericName[zh_CN]=文档查看器
 GenericName[zh_TW]=文件檢視器
 StartupNotify=true
-Icon=shelf
+Icon=maui-shelf
 MimeType=application/x-pdf;application/pdf;application/x-gzpdf;application/x-bzpdf;application/x-wwf;
